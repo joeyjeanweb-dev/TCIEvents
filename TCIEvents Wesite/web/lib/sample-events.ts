@@ -541,6 +541,32 @@ export function formatUSD(amount: number): string {
     : `$${rounded.toFixed(2)}`;
 }
 
+/**
+ * Turks & Caicos runs on America/Grand_Turk time. We format every event date in
+ * that fixed zone so the server and the browser always produce the same string
+ * (a mismatch would cause a React hydration warning).
+ */
+const TCI_TIME_ZONE = "America/Grand_Turk";
+
+/** Short date for cards, e.g. "Sat, Aug 29". */
+export function formatEventDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: TCI_TIME_ZONE,
+  });
+}
+
+/** Time for cards, e.g. "8:00 PM". */
+export function formatEventTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: TCI_TIME_ZONE,
+  });
+}
+
 export const STATUS_LABEL: Record<EventStatus, string> = {
   available: "Tickets available",
   almost_sold_out: "Almost sold out",

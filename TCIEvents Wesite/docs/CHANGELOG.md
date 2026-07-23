@@ -18,6 +18,33 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-23 — Milestone 1, Step 1.4: EventCard
+
+> The reusable "workhorse" event card used in every grid across the site
+> (homepage upcoming, Discover, "more from this organizer"). Follows the spec
+> (docs/02-Spec.md Part B) and wireframes: 16:9 cover, category chip, title,
+> date, venue, price, hover lift + image zoom.
+>
+> - **Added** (`web/components/EventCard.tsx`): the `EventCard` component.
+>   - 16:9 `next/image` cover with a gentle zoom-on-hover; the whole card is one
+>     link to `/events/[slug]` (that details page is Milestone 3, so the link
+>     404s for now — expected, same accepted pattern as the header/footer links).
+>   - Frosted **category chip** (emoji + label) top-left; a **status pill**
+>     top-right shown only when tickets are low ("Almost gone", `warn`) or gone
+>     ("Sold out", `danger`); sold-out cards also dim + desaturate the image.
+>   - Body: date · time (in fixed America/Grand_Turk zone), 2-line-clamped title,
+>     venue · island, and a "from $XX" / "Free" price with a "View →" affordance.
+>   - Plain server component — all motion is pure CSS, ships zero JS. Card lifts
+>     on hover **and** on keyboard focus, with a visible focus ring (a11y).
+> - **Added** (`web/lib/sample-events.ts`): `formatEventDate` + `formatEventTime`
+>   helpers, both pinned to the `America/Grand_Turk` zone so server and browser
+>   render identical strings (no hydration mismatch).
+> - **Added** (`web/app/preview/cards/page.tsx`): a **temporary** preview route,
+>   `/preview/cards`, rendering all 15 events so every card state is visible for
+>   verification. Gets deleted once the real homepage/Discover grids exist.
+>
+> - **Verified by Joey:** [x] 2026-07-23 — preview at `http://localhost:3000/preview/cards`.
+
 ### 2026-07-23 — Milestone 1, Step 1.3: Footer
 
 > The deep-ocean footer, shown on every page beneath the content. Follows the
