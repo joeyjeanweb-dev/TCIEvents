@@ -18,6 +18,34 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-23 — Milestone 1, Step 1.5: FeaturedEventCard
+
+> The larger, premium "hero" card for hand-picked events, used in the homepage
+> **★ Featured** row (docs/02-Spec.md Part B + C.1 §3). Same DNA as EventCard but
+> deliberately bigger and richer so featured events stand out.
+>
+> - **Added** (`web/components/FeaturedEventCard.tsx`): the `FeaturedEventCard`
+>   component.
+>   - Taller **4:3** `next/image` cover (vs. the workhorse card's 16:9) with the
+>     same gentle zoom-on-hover; whole card is one link to `/events/[slug]` (that
+>     details page is Milestone 3, so the link 404s for now — expected).
+>   - Gold **"★ Featured" badge** (top-left) — our one sparing use of the gold
+>     accent, with dark ink text on gold for accessible contrast. Frosted
+>     **category chip** moved to the bottom-left; **status pill** (Almost gone /
+>     Sold out) top-right; sold-out cards dim + desaturate the image.
+>   - Body carries extras the compact card doesn't: a 2-line **description
+>     snippet** and the **organizer** name (with a verified check when
+>     applicable), plus date · time, venue · island, and price.
+>   - Soft **gold ring/border** so it reads as "special" even before the badge.
+>   - Plain server component — all motion is pure CSS, ships zero JS. Lifts on
+>     hover **and** keyboard focus, with a visible focus ring (a11y).
+> - **Changed** (`web/app/preview/cards/page.tsx`): added a top **Step 1.5**
+>   section rendering the `featured: true` events with `FeaturedEventCard`, above
+>   the existing EventCard grid, so both cards can be compared side by side. Still
+>   a temporary route — it goes away once the homepage grid (Step 1.8) is built.
+>
+> **Verified by Joey:** [x] _(verified 2026-07-23)_
+
 ### 2026-07-23 — Milestone 1, Step 1.4: EventCard
 
 > The reusable "workhorse" event card used in every grid across the site

@@ -29,7 +29,7 @@
 - [x] 1.2 Build **Header / Nav** (sticky, frosted-over-hero → solid on scroll, mobile hamburger)  _(verified by Joey 2026-07-23)_
 - [x] 1.3 Build **Footer** (links + newsletter box + social)  _(verified by Joey 2026-07-23)_
 - [x] 1.4 Build reusable **EventCard** component  _(verified by Joey 2026-07-23)_
-- [ ] 1.5 Build **FeaturedEventCard** (with gold ★ badge)
+- [x] 1.5 Build **FeaturedEventCard** (with gold ★ badge)  _(verified by Joey 2026-07-23)_
 - [ ] 1.6 Build **CategoryChip** row (horizontal scroll)
 - [ ] 1.7 Build **SearchBar** (search + date + island + Go)
 - [ ] 1.8 Assemble **Homepage** (hero → categories → featured → upcoming → organizer CTA) + wire "See all events" → Discover, "List Your Event" → Host
