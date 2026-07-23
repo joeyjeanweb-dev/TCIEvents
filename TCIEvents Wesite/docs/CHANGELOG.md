@@ -18,6 +18,94 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-23 — Milestone 1, Step 1.8b: Homepage featured events row
+
+> Added the next slice of the homepage below the category section, matching the
+> mockup (the featured cards you scroll down to see).
+>
+> - **Changed** (`web/app/page.tsx`): added a **"Featured Events"** section — a
+>   heading with a **"View all events →"** link (→ `/discover`) and a horizontal,
+>   snap-scrolling row of the 5 `featured: true` events rendered with the existing
+>   (Step 1.5) `FeaturedEventCard`. Each card is a fixed width so several peek in
+>   and the row scrolls sideways (uses the `.no-scrollbar` helper). No new card
+>   code — reuses the verified component.
+> - Note: the mockup shows a little heart/save icon on these cards; saving needs
+>   accounts (out of Phase-1 scope), so it's intentionally left off rather than
+>   faked. Cards still link to `/events/[slug]` (404 until Milestone 3, expected).
+> - Production build + TypeScript pass.
+>
+> **Verified by Joey:** [x] 2026-07-23
+
+### 2026-07-23 — Milestone 1, Step 1.8a: Homepage hero + category section
+
+> First slice of the homepage assembly (Step 1.8 split into sub-steps), matching
+> the approved mockup. Built ahead of Step 1.7 by Joey's request ("what about the
+> hero?"); 1.7's SearchBar now belongs to the Discover page, so the order doesn't
+> conflict.
+>
+> - **Added** (`web/components/Hero.tsx`): reusable `Hero` component — full-bleed
+>   `next/image` background (`priority`), a left-weighted light scrim for headline
+>   legibility, and a headline + subtext + single gold CTA button. Pulls up under
+>   the sticky frosted header (negative top margin) so the photo shows through the
+>   bar, per the mockup. Reusable so the `/host` landing (Milestone 5) can share it.
+> - **Changed** (`web/app/page.tsx`): replaced the Milestone 0 setup-check
+>   placeholder with the real homepage top — the `Hero` (headline "Discover
+>   Events. / Experience Paradise.", **"Browse Events"** button → `/discover`, over
+>   `public/events/hero-beach.jpg`) followed by an **"Explore by Category"** section
+>   (palm accent + gold underline + subtitle) that reuses the Step 1.6
+>   `CategoryChipRow` with "All Events" active.
+> - Remaining homepage sections (Featured row, Upcoming grid + "See all events",
+>   organizer CTA banner) come in later sub-steps (1.8b+). Production build +
+>   TypeScript pass.
+>
+> **Verified by Joey:** [x] 2026-07-23
+
+### 2026-07-23 — Design direction: homepage target mockup + chip restyle
+
+> Joey approved a concrete homepage mockup and asked the site to match it (and to
+> reuse a similar hero on the `/host` landing page later).
+>
+> - **Added** (`docs/design/homepage-target-mockup.png`): the approved homepage
+>   mockup, now the checked-in visual target for Step 1.8. Decisions locked from
+>   it: hero uses a gold **"Browse Events"** button (no search bar in the hero —
+>   the **SearchBar** in Step 1.7 will live on the **Discover** page instead); the
+>   category section is titled **"Explore by Category"** with a palm accent.
+> - **Changed** (`web/components/CategoryChip.tsx`): restyled the chips to match
+>   the mockup — swapped the emoji for coloured `lucide-react` line-icons (one
+>   accent colour per category) and changed the active/selected state from a solid
+>   ocean fill to an **ocean outline** (white fill + ocean border/ring). The plain
+>   emoji on `CATEGORIES` are untouched and still used by EventCard /
+>   FeaturedEventCard. Label "All events" → **"All Events"** to match the mockup.
+>   Production build + TypeScript pass; all icon colours confirmed in the compiled
+>   CSS.
+>
+> **Verified by Joey:** [x] 2026-07-23
+
+### 2026-07-23 — Milestone 1, Step 1.6: CategoryChip row
+
+> The "browse by category" pill row that sits under the homepage hero
+> (docs/02-Spec.md Part B + C.1 §2). Horizontal-scroll on phones, wraps + centers
+> on wider screens.
+>
+> - **Added** (`web/components/CategoryChip.tsx`): two exports.
+>   - `CategoryChip` — one rounded pill (emoji + label) that links somewhere; has
+>     an `active` prop that styles it as the selected filter (ocean fill) for
+>     later use on Discover. Pure-CSS hover lift + colour shift, visible focus
+>     ring (a11y).
+>   - `CategoryChipRow` — the full row: a leading **"All events"** chip then one
+>     chip per entry in `CATEGORIES`, each linking to
+>     `/discover?category=<key>`. On small screens it scrolls sideways using the
+>     existing `.no-scrollbar` helper; from `sm` up it wraps and centers.
+>   - Honest links: the Discover page is Milestone 2, so these 404 for now —
+>     intentional, same pattern as EventCard linking to unbuilt `/events/[slug]`.
+>   - Plain server component — no `"use client"`, ships zero JS.
+> - **Changed** (`web/app/preview/cards/page.tsx`): added a top **Step 1.6**
+>   section showing the row plus a second copy with `activeCategory="music"` so
+>   the selected state is visible. Demoted the old Step 1.5 heading from `<h1>` to
+>   `<h2>` so the page keeps a single `<h1>`.
+>
+> **Verified by Joey:** [x] 2026-07-23
+
 ### 2026-07-23 — Milestone 1, Step 1.5: FeaturedEventCard
 
 > The larger, premium "hero" card for hand-picked events, used in the homepage

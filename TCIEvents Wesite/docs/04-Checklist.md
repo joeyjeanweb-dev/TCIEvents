@@ -30,9 +30,13 @@
 - [x] 1.3 Build **Footer** (links + newsletter box + social)  _(verified by Joey 2026-07-23)_
 - [x] 1.4 Build reusable **EventCard** component  _(verified by Joey 2026-07-23)_
 - [x] 1.5 Build **FeaturedEventCard** (with gold ★ badge)  _(verified by Joey 2026-07-23)_
-- [ ] 1.6 Build **CategoryChip** row (horizontal scroll)
-- [ ] 1.7 Build **SearchBar** (search + date + island + Go)
+- [x] 1.6 Build **CategoryChip** row (horizontal scroll)  _(verified by Joey 2026-07-23)_
+- [ ] 1.7 Build **SearchBar** (search + date + island + Go) — _now targets the **Discover** page top, not the hero (decided 2026-07-23)_
 - [ ] 1.8 Assemble **Homepage** (hero → categories → featured → upcoming → organizer CTA) + wire "See all events" → Discover, "List Your Event" → Host
+  - [x] 1.8a **Hero** + **Explore by Category** section _(verified by Joey 2026-07-23)_ — built ahead of 1.7 by Joey's request
+  - [x] 1.8b Featured events row _(verified by Joey 2026-07-23)_
+  - [ ] 1.8c Upcoming grid + "See all events →" link
+  - [ ] 1.8d Organizer CTA banner
 
 **✅ You'll see:** the full homepage with real-looking events.
 
