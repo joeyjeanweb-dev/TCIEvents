@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/* ============================================================
+   TCIEvents — "Tropical Luxury" design tokens
+   (see docs/02-Spec.md, Part A)
+   ============================================================ */
+@theme {
+  /* ---- Colors ---- */
+  --color-ocean-900: #0b3c5d;
+  --color-ocean-700: #125e80;
+  --color-ocean-600: #1b7fa8;
+  --color-ocean-400: #3fb6d3;
+  --color-turquoise: #36c2ce;
+
+  --color-sand-100: #f7f1e6;
+  --color-sand-200: #efe6d3;
+
+  --color-gold-500: #c9a227;
+
+  --color-ink-900: #0e1726;
+  --color-ink-500: #5b6675;
+
+  --color-success: #1fa971;
+  --color-warn: #e8a33d;
+  --color-danger: #d64545;
+
+  /* ---- Fonts (wired to next/font vars in layout.tsx) ---- */
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* ---- Radius ---- */
+  --radius-card: 16px;
+  --radius-control: 10px;
+
+  /* ---- Shadows (soft, low, ocean-tinted) ---- */
+  --shadow-soft: 0 8px 24px rgba(11, 60, 93, 0.08);
+  --shadow-lift: 0 16px 40px rgba(11, 60, 93, 0.14);
+
+  /* ---- Container ---- */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+/* Centered page container, matches spec max-width 1200px */
+.container-page {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+@media (min-width: 1024px) {
+  .container-page {
+    padding-inline: 32px;
+  }
+}
+
+/* Hide scrollbars on horizontal scroll rows (category chips, carousels) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
