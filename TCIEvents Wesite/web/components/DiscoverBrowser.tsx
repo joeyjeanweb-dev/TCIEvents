@@ -1,5 +1,5 @@
 /**
- * DiscoverBrowser — the interactive part of the Discover page (Steps 2.1–2.2).
+ * DiscoverBrowser — the interactive part of the Discover page (Steps 2.1–2.3).
  *
  * The page itself (`app/discover/page.tsx`) is a normal server component: it
  * reads the URL, hands us the events and the starting filters, and stops there.
@@ -8,8 +8,8 @@
  *
  * What it does today:
  *   - shows the compact SearchBar, pre-filled from the URL,
- *   - shows the FilterPanel sidebar (Step 2.2) beside the results on desktop,
- *     and behind a "Filters" button on mobile,
+ *   - shows the FilterPanel sidebar (Steps 2.2–2.3) beside the results on
+ *     desktop, and behind a "Filters" button on mobile,
  *   - keeps the chosen filters in React state and filters the list live,
  *   - shows the result count, a pill per active filter, and "Clear filters",
  *   - renders the responsive EventCard grid,
@@ -25,7 +25,6 @@
  *   dropdowns showing the same thing as the sidebar's radio buttons.
  *
  * Still to come in this milestone:
- *   - Step 2.3: wire up the panel's price slider + "free only" checkbox,
  *   - Step 2.4: the Sort dropdown (date / price / popularity),
  *   - Step 2.5: a proper designed EmptyState component,
  *   - Step 2.6: turn the mobile filter section into a slide-up drawer.
@@ -46,10 +45,12 @@ import { FilterPanel } from "@/components/FilterPanel";
 import { SearchBar, type SearchValues } from "@/components/SearchBar";
 import {
   countByCategory,
+  countFree,
   DEFAULT_FILTERS,
   discoverHref,
   filterEvents,
   hasActiveFilters,
+  priceCeiling,
   type DiscoverFilters,
 } from "@/lib/filter-events";
 import { CATEGORY_MAP, type SampleEvent } from "@/lib/sample-events";
@@ -88,6 +89,14 @@ export function DiscoverBrowser({
     () => countByCategory(events, filters, nowISO),
     [events, filters, nowISO],
   );
+
+  const freeCount = useMemo(
+    () => countFree(events, filters, nowISO),
+    [events, filters, nowISO],
+  );
+
+  // Depends only on the event list, so it's worked out once and never again.
+  const priceMax = useMemo(() => priceCeiling(events), [events]);
 
   /** Apply new filters to the grid *and* mirror them into the address bar. */
   function apply(next: DiscoverFilters) {
@@ -128,6 +137,10 @@ export function DiscoverBrowser({
             <FilterTag key={category}>{CATEGORY_MAP[category].label}</FilterTag>
           ))}
           {filters.island !== "all" && <FilterTag>{filters.island}</FilterTag>}
+          {filters.freeOnly && <FilterTag>Free only</FilterTag>}
+          {!filters.freeOnly && filters.maxPrice !== null && (
+            <FilterTag>Up to ${filters.maxPrice}</FilterTag>
+          )}
 
           {isFiltered && (
             <button
@@ -171,6 +184,8 @@ export function DiscoverBrowser({
           <FilterPanel
             filters={filters}
             counts={counts}
+            freeCount={freeCount}
+            priceMax={priceMax}
             onChange={apply}
             onClear={() => apply(DEFAULT_FILTERS)}
             showClear={isFiltered}

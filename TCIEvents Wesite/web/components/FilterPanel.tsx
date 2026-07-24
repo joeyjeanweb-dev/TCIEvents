@@ -1,5 +1,5 @@
 /**
- * FilterPanel — the filter sidebar on the Discover page (Milestone 2, Step 2.2).
+ * FilterPanel — the filter sidebar on the Discover page (Steps 2.2–2.3).
  *
  * Layout (docs/03-Wireframes.md §3): a narrow column down the left on desktop,
  * sitting beside the results grid. On mobile it drops into the normal page flow
@@ -13,13 +13,13 @@
  *      given your *other* filters.
  *   2. **Date** — the same five presets as the search bar, as radio buttons.
  *   3. **Island** — "All islands" plus one radio per island.
- *   4. **Price** — a maximum-price slider. **Not wired up yet** (Step 2.3).
- *   5. **Free only** — a checkbox. **Not wired up yet** (Step 2.3).
+ *   4. **Price** — a maximum-price slider, in $25 steps, compared against each
+ *      event's *cheapest* ticket. All the way right means "Any price".
+ *   5. **Free only** — a checkbox; it greys the slider out while it's on,
+ *      because "free" is just a stricter version of the same question.
  *
- * Sections 4 and 5 are rendered `disabled` on purpose rather than left out, so
- * you can see and approve the finished layout now. They do nothing until 2.3 —
- * they're greyed out and captioned so nobody mistakes them for broken controls
- * (the project's data-honesty rule: never fake a feature that isn't built).
+ * Sections 4 and 5 were rendered disabled in Step 2.2 while the layout was
+ * being approved; Step 2.3 switches them on.
  *
  * Why plain `<input type="checkbox">` / `<input type="radio">` instead of custom
  * boxes: real form controls come with keyboard support, screen-reader labels and
@@ -35,6 +35,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import {
   DATE_FILTERS,
+  PRICE_STEP,
   toggleCategory,
   type DiscoverFilters,
 } from "@/lib/filter-events";
@@ -49,6 +50,8 @@ import { cn } from "@/lib/utils";
 export function FilterPanel({
   filters,
   counts,
+  freeCount,
+  priceMax,
   onChange,
   onClear,
   showClear,
@@ -58,6 +61,10 @@ export function FilterPanel({
   filters: DiscoverFilters;
   /** How many events sit in each category right now (see countByCategory). */
   counts: Record<Category, number>;
+  /** How many of those are free (the number beside "Free events only"). */
+  freeCount: number;
+  /** Far-right end of the price slider, in dollars (see priceCeiling). */
+  priceMax: number;
   /** Called with the *complete* new filter set whenever a control changes. */
   onChange: (next: DiscoverFilters) => void;
   /** Reset everything (the panel's own "Clear all" button). */
@@ -156,38 +163,67 @@ export function FilterPanel({
         </ul>
       </Section>
 
-      {/* ---- 4 + 5. Price and Free only — built, not yet wired up ---- */}
+      {/* ---- 4 + 5. Price and Free only ---- */}
       <Section title="Price">
         <label
           htmlFor="filter-price"
-          className="flex items-baseline justify-between text-sm text-ink-500"
+          className={cn(
+            "flex items-baseline justify-between text-sm text-ink-500",
+            filters.freeOnly && "opacity-50",
+          )}
         >
           <span>Maximum ticket price</span>
-          <span className="font-semibold text-ink-900">Any</span>
+          <span className="font-semibold text-ink-900">
+            {filters.maxPrice === null ? "Any" : `$${filters.maxPrice}`}
+          </span>
         </label>
         <input
           id="filter-price"
           type="range"
           min={0}
-          max={350}
-          step={25}
-          defaultValue={350}
-          disabled
-          className="mt-3 w-full cursor-not-allowed accent-ocean-600 opacity-50"
+          max={priceMax}
+          step={PRICE_STEP}
+          // Pushed all the way right = "no limit", which we store as null.
+          value={filters.maxPrice ?? priceMax}
+          onChange={(event) => {
+            const value = Number(event.target.value);
+            onChange({
+              ...filters,
+              maxPrice: value >= priceMax ? null : value,
+            });
+          }}
+          // "Free events only" is a stricter version of the same idea, so the
+          // slider is switched off (rather than fighting it) while it's ticked.
+          disabled={filters.freeOnly}
+          aria-valuetext={
+            filters.maxPrice === null ? "Any price" : `$${filters.maxPrice}`
+          }
+          className={cn(
+            "mt-3 w-full accent-ocean-600",
+            filters.freeOnly ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+          )}
         />
+        <div
+          className={cn(
+            "mt-1 flex justify-between text-xs text-ink-500",
+            filters.freeOnly && "opacity-50",
+          )}
+        >
+          <span>$0</span>
+          <span>Any</span>
+        </div>
         <div className="mt-4">
           <CheckRow
             name="filter-free"
             type="checkbox"
-            checked={false}
-            onChange={() => {}}
-            disabled
+            checked={filters.freeOnly}
+            onChange={() =>
+              onChange({ ...filters, freeOnly: !filters.freeOnly })
+            }
             label="Free events only"
+            count={freeCount}
           />
         </div>
-        <p className="mt-3 text-xs italic text-ink-500">
-          Price and free-only filtering switch on in Step 2.3.
-        </p>
       </Section>
     </aside>
   );

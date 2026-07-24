@@ -58,9 +58,11 @@
 - [x] 2.2 Build **FilterPanel** (category, date, price, island, free-only)
       _(verified by Joey 2026-07-24)_ — category became **multi-select** (checkbox
       list, per the wireframe); price + free-only render greyed out until 2.3
-- [ ] 2.3 Make filters work **live** (client-side filtering of sample events)
-      — _search / date / island / category already filter live as of 2.1–2.2; 2.3
-      adds the panel's price + free-only controls_
+- [x] 2.3 Make filters work **live** (client-side filtering of sample events)
+      _(verified by Joey 2026-07-24)_ — _search / date / island / category already
+      filtered live as of 2.1–2.2; 2.3 switched on the panel's **price slider**
+      ($25 steps, max $250, derived from the data) and **Free events only**
+      checkbox, added their pills, and put them in the URL (`?max=`, `?free=1`)_
 - [ ] 2.4 Add **Sort** (date / price / popularity)
 - [ ] 2.5 Add **EmptyState** ("no events match your filters") — _plain placeholder
       message shipped in 2.1; 2.5 makes it the designed component_

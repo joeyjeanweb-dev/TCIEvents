@@ -1,5 +1,5 @@
 /**
- * Discover / Browse page (`/discover`) — Milestone 2, Steps 2.1–2.2.
+ * Discover / Browse page (`/discover`) — Milestone 2, Steps 2.1–2.3.
  *
  * This is the page the homepage hero button, the "See all events" link, the
  * category chips and the SearchBar have all been pointing at since Milestone 1.
@@ -15,9 +15,8 @@
  * Next.js 16 note: `searchParams` is a **Promise** here (it used to be a plain
  * object in older versions), so it has to be `await`ed — hence `async function`.
  *
- * Still to come in this milestone: the panel's price + "free only" controls
- * (2.3), the Sort dropdown (2.4), the designed EmptyState (2.5) and the mobile
- * filter drawer (2.6).
+ * Still to come in this milestone: the Sort dropdown (2.4), the designed
+ * EmptyState (2.5) and the mobile filter drawer (2.6).
  */
 
 import type { Metadata } from "next";

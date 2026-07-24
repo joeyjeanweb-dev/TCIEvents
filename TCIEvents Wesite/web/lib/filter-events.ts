@@ -11,7 +11,7 @@
  * Step 2.1 supports: free-text search, date preset, island, category.
  * Step 2.2 turns category into a **multi-select** (the FilterPanel shows a
  * checkbox per category, so you can tick Music *and* Food at once).
- * Price range and "free only" get wired up in Step 2.3.
+ * Step 2.3 adds the last two: a **maximum price** and a **free-only** switch.
  */
 
 import {
@@ -19,6 +19,7 @@ import {
   CATEGORY_MAP,
   ISLANDS,
   TCI_TIME_ZONE,
+  lowestPrice,
   type Category,
   type Island,
   type SampleEvent,
@@ -44,6 +45,35 @@ export const DATE_FILTERS = [
 export type DateFilter = (typeof DATE_FILTERS)[number]["value"];
 
 // ---------------------------------------------------------------------------
+// Price (Step 2.3)
+// ---------------------------------------------------------------------------
+
+/**
+ * The price slider moves in $25 jumps. Whole-dollar steps would give the slider
+ * hundreds of positions that all look the same, and would put ugly numbers like
+ * "$137" in the URL; $25 is coarse enough to feel decisive and fine enough to
+ * separate a $20 beach party from a $180 chef's table.
+ */
+export const PRICE_STEP = 25;
+
+/**
+ * How far right the slider can go, worked out from the events themselves rather
+ * than hard-coded: the priciest event's cheapest ticket, rounded **up** to the
+ * next $25. Deriving it means the slider can always reach every event — if a
+ * $500 gala is added to `sample-events.ts` tomorrow, the slider grows to fit it
+ * instead of quietly making that event unreachable.
+ *
+ * The far-right position means "Any price" (stored as `null`), not "$250".
+ */
+export function priceCeiling(events: SampleEvent[]): number {
+  const dearest = events.reduce(
+    (highest, event) => Math.max(highest, lowestPrice(event)),
+    0,
+  );
+  return Math.max(PRICE_STEP, Math.ceil(dearest / PRICE_STEP) * PRICE_STEP);
+}
+
+// ---------------------------------------------------------------------------
 // The shape of "what the user has chosen"
 // ---------------------------------------------------------------------------
 
@@ -59,6 +89,13 @@ export type DiscoverFilters = {
    * i.e. no narrowing at all. (Step 2.2: this used to be a single category.)
    */
   categories: Category[];
+  /**
+   * The most someone wants to pay, compared against an event's **cheapest**
+   * ticket. `null` = "Any price" (the slider pushed all the way right).
+   */
+  maxPrice: number | null;
+  /** Only show events with a $0 ticket. */
+  freeOnly: boolean;
 };
 
 /** Nothing selected — every event passes. */
@@ -67,6 +104,8 @@ export const DEFAULT_FILTERS: DiscoverFilters = {
   date: "any",
   island: "all",
   categories: [],
+  maxPrice: null,
+  freeOnly: false,
 };
 
 /** True when the user has narrowed anything down (used for "Clear filters"). */
@@ -75,7 +114,9 @@ export function hasActiveFilters(filters: DiscoverFilters): boolean {
     filters.q.trim() !== "" ||
     filters.date !== "any" ||
     filters.island !== "all" ||
-    filters.categories.length > 0
+    filters.categories.length > 0 ||
+    filters.maxPrice !== null ||
+    filters.freeOnly
   );
 }
 
@@ -101,7 +142,7 @@ export function toggleCategory(
 }
 
 // ---------------------------------------------------------------------------
-// Reading filters out of the URL (?q=…&date=…&island=…&category=…)
+// Reading filters out of the URL (?q=…&date=…&island=…&category=…&max=…&free=1)
 // ---------------------------------------------------------------------------
 
 /** A query string can hand us a string, a repeated string[], or nothing. */
@@ -140,6 +181,17 @@ export function parseDiscoverFilters(
     (value): value is Category => value in CATEGORY_MAP,
   );
 
+  // `?max=100` → 100. Anything that isn't a sensible number ("abc", "-5") falls
+  // back to null, i.e. "Any price". Note `max=0` is a *real* value — the slider
+  // dragged fully left — so it has to survive, which is why the empty string is
+  // rejected separately rather than leaning on Number("") being 0.
+  const rawMax = firstValue(searchParams.max);
+  const parsedMax = Number(rawMax);
+  const maxPrice =
+    rawMax !== "" && Number.isFinite(parsedMax) && parsedMax >= 0
+      ? Math.round(parsedMax)
+      : null;
+
   return {
     q: firstValue(searchParams.q),
     date: DATE_FILTERS.some((d) => d.value === date) ? date : "any",
@@ -150,6 +202,8 @@ export function parseDiscoverFilters(
     categories: CATEGORIES.map((c) => c.key).filter((key) =>
       categories.includes(key),
     ),
+    maxPrice,
+    freeOnly: firstValue(searchParams.free) === "1",
   };
 }
 
@@ -164,6 +218,13 @@ export function discoverHref(filters: DiscoverFilters): string {
   if (filters.island !== "all") params.set("island", filters.island);
   if (filters.categories.length) {
     params.set("category", filters.categories.join(","));
+  }
+  // "Free only" already implies $0, so there's no point carrying a max price
+  // alongside it — leaving it out keeps the URL honest about what's applied.
+  if (filters.freeOnly) {
+    params.set("free", "1");
+  } else if (filters.maxPrice !== null) {
+    params.set("max", String(filters.maxPrice));
   }
   const query = params.toString();
   return query ? `/discover?${query}` : "/discover";
@@ -296,6 +357,16 @@ export function filterEvents(
       const day = tciDayKey(event.startAt);
       if (day < window.start || day > window.end) return false;
     }
+    // Price is judged on the event's CHEAPEST ticket, so a $0-entry festival
+    // with a $15 VIP pass still counts as free, and a gala whose cheapest seat
+    // is $150 disappears once you drag the slider below $150.
+    const from = lowestPrice(event);
+    if (filters.freeOnly && from !== 0) {
+      return false;
+    }
+    if (filters.maxPrice !== null && from > filters.maxPrice) {
+      return false;
+    }
     if (query && !searchHaystack(event).includes(query)) {
       return false;
     }
@@ -329,4 +400,25 @@ export function countByCategory(
 
   for (const event of matching) counts[event.category] += 1;
   return counts;
+}
+
+/**
+ * How many free events the *other* filters currently allow — the number shown
+ * beside "Free events only".
+ *
+ * Same trick as `countByCategory`: switch off the filter the number belongs to
+ * (here `freeOnly`, plus the price slider, which can only ever hide free events
+ * by accident) so the count answers "what would ticking this give me?" rather
+ * than "what am I already looking at?".
+ */
+export function countFree(
+  events: SampleEvent[],
+  filters: DiscoverFilters,
+  nowISO: string,
+): number {
+  return filterEvents(
+    events,
+    { ...filters, freeOnly: true, maxPrice: null },
+    nowISO,
+  ).length;
 }

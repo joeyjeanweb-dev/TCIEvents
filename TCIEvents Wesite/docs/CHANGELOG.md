@@ -18,6 +18,51 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-24 — Milestone 2, Step 2.3: price + free-only filters go live
+
+> The last two filter controls stop being decorative. The **price slider** and
+> **Free events only** checkbox now filter the grid, show up as pills, and ride
+> along in the URL like every other filter.
+
+- **Added** (`web/lib/filter-events.ts`): two new fields on `DiscoverFilters` —
+  `maxPrice` (a number, or `null` for "Any price") and `freeOnly` (true/false).
+  `filterEvents()` judges both against an event's **cheapest** ticket, so a
+  festival with free entry and a $15 VIP pass still counts as free, and the
+  Chef's Table (cheapest seat $150) drops out as soon as the slider goes below
+  $150.
+- **Added** (`web/lib/filter-events.ts`): `priceCeiling()` — works the slider's
+  far-right end out from the event data (priciest event's cheapest ticket,
+  rounded up to the next $25 → **$250** today) instead of hard-coding it, so
+  adding a dearer event later can never make it unreachable. `PRICE_STEP` fixes
+  the slider's jumps at $25.
+- **Added** (`web/lib/filter-events.ts`): `countFree()` — the number beside
+  "Free events only", counted with the *other* filters applied but this one
+  switched off, so it answers "what would ticking this give me?".
+- **Changed** (`web/components/FilterPanel.tsx`): the Price slider and "Free
+  events only" checkbox are **no longer disabled**. The slider reads live ("Any"
+  → "$150"), and ticking **Free only** greys the slider out, since free is just
+  a stricter version of the same question. The "switches on in Step 2.3" caption
+  is gone.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): passes the new
+  `priceMax` / `freeCount` values to the panel, and shows an **"Up to $150"** or
+  **"Free only"** pill in the active-filter row beside the result count.
+- **Changed** (`web/lib/filter-events.ts`): the URL now carries price too —
+  `/discover?max=100` and `/discover?free=1`. `free=1` wins on its own (no
+  pointless `max` alongside it), and a nonsense value like `?max=abc` quietly
+  falls back to "Any price" rather than breaking the page.
+- **Fixed** (`web/lib/filter-events.ts`, caught while testing): `?max=0` — the
+  slider dragged fully left — was reading back as "Any price" on reload, because
+  `Number("")` is also `0` and the check couldn't tell an empty parameter from a
+  deliberate zero. The empty string is now rejected separately, so `max=0`
+  survives a refresh and a shared link.
+- **Note:** `npm run lint` still reports the same one **pre-existing** error in
+  `SiteHeader.tsx` (setState inside an effect, from Milestone 1). Untouched by
+  this step; still worth a small ad-hoc fix of its own.
+
+> **Verified by Joey:** [x] 2026-07-24
+
+---
+
 ### 2026-07-24 — Milestone 2, Step 2.2: FilterPanel sidebar on Discover
 
 > The Discover page grows a proper filter sidebar: **Category** checkboxes,
