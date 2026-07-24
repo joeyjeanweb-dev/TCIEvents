@@ -35,6 +35,9 @@
 - [ ] 1.8 Assemble **Homepage** (hero → categories → featured → upcoming → organizer CTA) + wire "See all events" → Discover, "List Your Event" → Host
   - [x] 1.8a **Hero** + **Explore by Category** section _(verified by Joey 2026-07-23)_ — built ahead of 1.7 by Joey's request
   - [x] 1.8b Featured events row _(verified by Joey 2026-07-23)_
+    - [x] Fix — **ad-hoc, outside the numbered sequence**: added prev/next arrow
+      buttons (`components/FeaturedCarousel.tsx`) so the row can be scrolled with a
+      mouse; it previously relied on swipe only _(verified by Joey 2026-07-24)_
   - [ ] 1.8c Upcoming grid + "See all events →" link
   - [ ] 1.8d Organizer CTA banner
 

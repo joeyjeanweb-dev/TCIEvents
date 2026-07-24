@@ -16,6 +16,7 @@ import { TreePalm } from "lucide-react";
 import { Hero } from "@/components/Hero";
 import { CategoryChipRow } from "@/components/CategoryChip";
 import { FeaturedEventCard } from "@/components/FeaturedEventCard";
+import { FeaturedCarousel } from "@/components/FeaturedCarousel";
 import { getFeaturedEvents } from "@/lib/sample-events";
 
 export default function Home() {
@@ -74,8 +75,9 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Scrolls sideways; each card has a fixed width so several peek in */}
-          <div className="no-scrollbar mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2">
+          {/* Scrolls sideways; each card has a fixed width so several peek in.
+              Swipe on touch, or use the arrow buttons on desktop. */}
+          <FeaturedCarousel className="mt-8">
             {featured.map((event) => (
               <FeaturedEventCard
                 key={event.id}
@@ -83,7 +85,7 @@ export default function Home() {
                 className="w-[280px] shrink-0 snap-start sm:w-[320px]"
               />
             ))}
-          </div>
+          </FeaturedCarousel>
         </div>
       </section>
     </main>

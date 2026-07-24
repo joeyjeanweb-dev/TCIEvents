@@ -18,6 +18,31 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-24 — Fix (ad-hoc — outside the numbered sequence): featured row wouldn't scroll right on desktop
+
+> Joey reported he couldn't move right through the Featured Events row. The row
+> was a plain `overflow-x-auto` div with the `.no-scrollbar` helper — swiping
+> works on a phone/touchpad, but with a normal mouse there was no scrollbar and
+> no buttons, so the off-screen cards were unreachable.
+>
+> - **Added** (`web/components/FeaturedCarousel.tsx`): a small client component
+>   that wraps the scrolling row and adds circular **prev/next arrow buttons**.
+>   Each click scrolls by exactly one card width + gap, with smooth scrolling.
+>   Arrows fade out when there's nothing further in that direction, are hidden
+>   below `md` (swipe is the natural gesture on touch), and are real `<button>`s
+>   with `aria-label`s + focus rings for keyboard/screen-reader users.
+> - **Changed** (`web/app/page.tsx`): the Featured Events row now renders inside
+>   `<FeaturedCarousel>`; the cards themselves are unchanged.
+> - TypeScript passes; homepage renders 200 in dev.
+>
+> **Note (environment, not code):** the change didn't appear at first because the
+> project lives on the Windows drive (`/mnt/c/...`) mounted into WSL. File-change
+> events don't cross that mount, so Turbopack never recompiled — the dev server
+> was serving the pre-edit page. Restarting the dev server picked it up. Expect
+> to restart after edits until/unless the repo is moved into the WSL filesystem.
+>
+> **Verified by Joey:** [x] 2026-07-24
+
 ### 2026-07-23 — Milestone 1, Step 1.8b: Homepage featured events row
 
 > Added the next slice of the homepage below the category section, matching the
