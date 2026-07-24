@@ -18,6 +18,53 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-24 — Milestone 2, Step 2.2: FilterPanel sidebar on Discover
+
+> The Discover page grows a proper filter sidebar: **Category** checkboxes,
+> **Date** and **Island** radio buttons, and the **Price** / **Free only**
+> controls (built but deliberately switched off until Step 2.3).
+
+- **Added** (`web/components/FilterPanel.tsx`): the **FilterPanel** — a white
+  card holding five titled sections, laid out per `docs/03-Wireframes.md` §3.
+  Category is a checkbox per category with a **count** beside it; Date and
+  Island are radio lists. Real `<input type="checkbox">` / `type="radio"`
+  elements are used (recoloured with Tailwind's `accent-ocean-600`) so keyboard
+  and screen-reader support come for free.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): the results area is now a
+  two-column layout from `lg` up — a 16rem filter column (**sticky**, so it
+  stays put while the grid scrolls) beside the cards. Below `lg` the panel is
+  hidden behind a **[⚙ Filters]** button that expands it inline; Step 2.6 turns
+  that into a slide-up drawer. Card grid is now 1 / 2 / 3 columns at
+  mobile / `sm` / `xl` to leave room for the sidebar.
+- **Changed** (`web/lib/filter-events.ts`): **category is now multi-select.**
+  `DiscoverFilters.category` (one category or `"all"`) became
+  `DiscoverFilters.categories` (a list; **empty means all**), because the spec's
+  filter panel is a checkbox list — you can now ask for Music *and* Food at
+  once. The URL carries them comma-separated (`/discover?category=music,food`),
+  and the old single-value links the homepage chips and header menu use
+  (`?category=music`) still parse correctly.
+- **Added** (`web/lib/filter-events.ts`): `toggleCategory()` (tick/untick one
+  box, keeping the list in a stable order) and `countByCategory()` (the numbers
+  beside the checkboxes). The counts respect every filter *except* category, so
+  they stay useful once a box is ticked.
+- **Changed** (`web/components/SearchBar.tsx`): the bar gained an optional
+  **controlled mode** (`values` + `onValuesChange`). Discover uses it so the
+  sidebar's Date/Island choices show up in the bar's dropdowns too — without it
+  the two would drift apart and display different answers. Passing neither prop
+  leaves the bar behaving exactly as before.
+- **Note — not yet wired up:** the **Price** slider and **Free events only**
+  checkbox are rendered greyed out with the caption *"Price and free-only
+  filtering switch on in Step 2.3."* They're shown now so the finished panel
+  layout can be approved, and they are honestly marked as inactive rather than
+  silently doing nothing.
+- **Note:** `npm run lint` reports one **pre-existing** error in
+  `SiteHeader.tsx` (React's new "don't call setState inside an effect" rule,
+  from Milestone 1). Untouched by this step; worth a small fix of its own.
+
+> **Verified by Joey:** [x] 2026-07-24
+
+---
+
 ### 2026-07-24 — Ad-hoc (outside the numbered sequence): photo hero on the Discover page
 
 > Joey supplied a sunset beach-concert image and asked for it as the Discover

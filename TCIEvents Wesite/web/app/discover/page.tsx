@@ -1,5 +1,5 @@
 /**
- * Discover / Browse page (`/discover`) — Milestone 2, Step 2.1.
+ * Discover / Browse page (`/discover`) — Milestone 2, Steps 2.1–2.2.
  *
  * This is the page the homepage hero button, the "See all events" link, the
  * category chips and the SearchBar have all been pointing at since Milestone 1.
@@ -9,14 +9,15 @@
  *     the starting filters, and renders the page furniture (heading, container).
  *     It ships no JavaScript of its own.
  *   - **`DiscoverBrowser` is the client component.** It owns the interactive
- *     bits — the search bar, the live filtering, the result count and the grid.
+ *     bits — the search bar, the FilterPanel sidebar, the live filtering, the
+ *     result count and the grid.
  *
  * Next.js 16 note: `searchParams` is a **Promise** here (it used to be a plain
  * object in older versions), so it has to be `await`ed — hence `async function`.
  *
- * Still to come in this milestone: the FilterPanel sidebar (2.2–2.3), the Sort
- * dropdown (2.4), the designed EmptyState (2.5) and the mobile filter drawer
- * (2.6).
+ * Still to come in this milestone: the panel's price + "free only" controls
+ * (2.3), the Sort dropdown (2.4), the designed EmptyState (2.5) and the mobile
+ * filter drawer (2.6).
  */
 
 import type { Metadata } from "next";

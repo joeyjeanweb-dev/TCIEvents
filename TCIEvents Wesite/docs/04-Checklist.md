@@ -55,10 +55,12 @@
   - [x] **Ad-hoc, outside the numbered sequence**: photo banner hero at the top of
         Discover (Joey-supplied sunset beach-concert image) + reusable `PageHero`
         component  _(verified by Joey 2026-07-24)_
-- [ ] 2.2 Build **FilterPanel** (category, date, price, island, free-only)
+- [x] 2.2 Build **FilterPanel** (category, date, price, island, free-only)
+      _(verified by Joey 2026-07-24)_ — category became **multi-select** (checkbox
+      list, per the wireframe); price + free-only render greyed out until 2.3
 - [ ] 2.3 Make filters work **live** (client-side filtering of sample events)
-      — _search / date / island / category already filter live as of 2.1; 2.3 adds
-      the panel's price + free-only controls_
+      — _search / date / island / category already filter live as of 2.1–2.2; 2.3
+      adds the panel's price + free-only controls_
 - [ ] 2.4 Add **Sort** (date / price / popularity)
 - [ ] 2.5 Add **EmptyState** ("no events match your filters") — _plain placeholder
       message shipped in 2.1; 2.5 makes it the designed component_

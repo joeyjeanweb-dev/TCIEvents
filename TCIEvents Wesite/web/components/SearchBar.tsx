@@ -77,6 +77,8 @@ export function buildDiscoverHref(values: SearchValues): string {
 export function SearchBar({
   size = "compact",
   defaultValues,
+  values: controlledValues,
+  onValuesChange,
   onSubmit,
   className,
 }: {
@@ -84,15 +86,33 @@ export function SearchBar({
   size?: "compact" | "large";
   /** Pre-fill the bar (e.g. from the URL when landing on Discover). */
   defaultValues?: Partial<SearchValues>;
+  /**
+   * **Controlled mode** (added in Step 2.2). Pass `values` + `onValuesChange`
+   * and the parent owns what the bar shows. Discover needs this because the
+   * FilterPanel can change the date/island too — without it, the sidebar and
+   * the bar would drift out of step and show two different answers.
+   *
+   * Leave both off and the bar keeps its own state as before.
+   */
+  values?: SearchValues;
+  onValuesChange?: (values: SearchValues) => void;
   /** If given, we call this instead of navigating (for live filtering). */
   onSubmit?: (values: SearchValues) => void;
   className?: string;
 }) {
   const router = useRouter();
-  const [values, setValues] = useState<SearchValues>({
+  const [ownValues, setOwnValues] = useState<SearchValues>({
     ...EMPTY,
     ...defaultValues,
   });
+
+  const values = controlledValues ?? ownValues;
+
+  /** Write a change back to whoever owns the state. */
+  function setValues(next: SearchValues) {
+    if (controlledValues !== undefined) onValuesChange?.(next);
+    else setOwnValues(next);
+  }
 
   const large = size === "large";
   /** Height of each field — the whole bar lines up on this. */

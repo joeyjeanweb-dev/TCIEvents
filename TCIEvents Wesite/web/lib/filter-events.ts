@@ -9,10 +9,13 @@
  *     (when you change a filter) and give identical answers.
  *
  * Step 2.1 supports: free-text search, date preset, island, category.
- * Price range and "free only" arrive with the FilterPanel in Steps 2.2–2.3.
+ * Step 2.2 turns category into a **multi-select** (the FilterPanel shows a
+ * checkbox per category, so you can tick Music *and* Food at once).
+ * Price range and "free only" get wired up in Step 2.3.
  */
 
 import {
+  CATEGORIES,
   CATEGORY_MAP,
   ISLANDS,
   TCI_TIME_ZONE,
@@ -51,8 +54,11 @@ export type DiscoverFilters = {
   date: DateFilter;
   /** A single island, or "all". */
   island: Island | "all";
-  /** A single category, or "all". */
-  category: Category | "all";
+  /**
+   * The ticked category checkboxes. An **empty array means "all categories"** —
+   * i.e. no narrowing at all. (Step 2.2: this used to be a single category.)
+   */
+  categories: Category[];
 };
 
 /** Nothing selected — every event passes. */
@@ -60,7 +66,7 @@ export const DEFAULT_FILTERS: DiscoverFilters = {
   q: "",
   date: "any",
   island: "all",
-  category: "all",
+  categories: [],
 };
 
 /** True when the user has narrowed anything down (used for "Clear filters"). */
@@ -69,8 +75,29 @@ export function hasActiveFilters(filters: DiscoverFilters): boolean {
     filters.q.trim() !== "" ||
     filters.date !== "any" ||
     filters.island !== "all" ||
-    filters.category !== "all"
+    filters.categories.length > 0
   );
+}
+
+/**
+ * Tick / untick one category checkbox and hand back a fresh filters object.
+ *
+ * The result is kept in `CATEGORIES` order (Music, Nightlife, Boat…) rather than
+ * click order, so the URL reads the same however you got there.
+ */
+export function toggleCategory(
+  filters: DiscoverFilters,
+  category: Category,
+): DiscoverFilters {
+  const on = filters.categories.includes(category);
+  const next = on
+    ? filters.categories.filter((c) => c !== category)
+    : [...filters.categories, category];
+
+  return {
+    ...filters,
+    categories: CATEGORIES.map((c) => c.key).filter((key) => next.includes(key)),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -85,17 +112,33 @@ function firstValue(raw: RawParam): string {
 }
 
 /**
- * Turn `?q=jazz&category=music` into a DiscoverFilters object.
+ * Split a param into a list, accepting both `?category=music,food` (what we
+ * write) and `?category=music&category=food` (what a hand-typed URL might use).
+ */
+function listValue(raw: RawParam): string[] {
+  const parts = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  return parts
+    .flatMap((part) => part.split(","))
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Turn `?q=jazz&category=music,food` into a DiscoverFilters object.
  *
- * Anything unrecognised (a typo'd category, a made-up island) quietly falls
- * back to "all" — a hand-edited URL should never crash the page.
+ * Anything unrecognised (a typo'd category, a made-up island) is quietly
+ * dropped — a hand-edited URL should never crash the page. A single
+ * `?category=music` (what the homepage category chips link to) still works: it
+ * just parses to a one-item list.
  */
 export function parseDiscoverFilters(
   searchParams: Record<string, RawParam>,
 ): DiscoverFilters {
   const date = firstValue(searchParams.date) as DateFilter;
   const island = firstValue(searchParams.island);
-  const category = firstValue(searchParams.category);
+  const categories = listValue(searchParams.category).filter(
+    (value): value is Category => value in CATEGORY_MAP,
+  );
 
   return {
     q: firstValue(searchParams.q),
@@ -103,8 +146,10 @@ export function parseDiscoverFilters(
     island: (ISLANDS as string[]).includes(island)
       ? (island as Island)
       : "all",
-    category:
-      category in CATEGORY_MAP ? (category as Category) : "all",
+    // De-duplicated and put back into CATEGORIES order.
+    categories: CATEGORIES.map((c) => c.key).filter((key) =>
+      categories.includes(key),
+    ),
   };
 }
 
@@ -117,7 +162,9 @@ export function discoverHref(filters: DiscoverFilters): string {
   if (filters.q.trim()) params.set("q", filters.q.trim());
   if (filters.date !== "any") params.set("date", filters.date);
   if (filters.island !== "all") params.set("island", filters.island);
-  if (filters.category !== "all") params.set("category", filters.category);
+  if (filters.categories.length) {
+    params.set("category", filters.categories.join(","));
+  }
   const query = params.toString();
   return query ? `/discover?${query}` : "/discover";
 }
@@ -235,7 +282,11 @@ export function filterEvents(
   const window = dateWindow(filters.date, nowISO);
 
   return events.filter((event) => {
-    if (filters.category !== "all" && event.category !== filters.category) {
+    // Empty list = "all categories", so only narrow when something is ticked.
+    if (
+      filters.categories.length > 0 &&
+      !filters.categories.includes(event.category)
+    ) {
       return false;
     }
     if (filters.island !== "all" && event.island !== filters.island) {
@@ -250,4 +301,32 @@ export function filterEvents(
     }
     return true;
   });
+}
+
+/**
+ * How many events each category would show — used for the "(3)" numbers beside
+ * the FilterPanel checkboxes.
+ *
+ * The counts deliberately ignore the *category* filter itself but respect every
+ * other one. That's what makes them useful: with "Grand Turk" selected you can
+ * see at a glance that Music has 2 events there and Business has none, instead
+ * of every row reading 0 the moment you tick one box.
+ */
+export function countByCategory(
+  events: SampleEvent[],
+  filters: DiscoverFilters,
+  nowISO: string,
+): Record<Category, number> {
+  const matching = filterEvents(
+    events,
+    { ...filters, categories: [] },
+    nowISO,
+  );
+
+  const counts = Object.fromEntries(
+    CATEGORIES.map((c) => [c.key, 0]),
+  ) as Record<Category, number>;
+
+  for (const event of matching) counts[event.category] += 1;
+  return counts;
 }
