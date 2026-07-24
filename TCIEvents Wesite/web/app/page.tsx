@@ -7,8 +7,9 @@
  *   - "Explore by Category" section, reusing the Step 1.6 CategoryChipRow
  *   - Step 1.8b: Featured events row (FeaturedEventCards in a scrolling carousel)
  *   - Step 1.8c: Upcoming events grid + "See all events →" link
+ *   - Step 1.8d: Organizer CTA banner ("Hosting an event?" → /host)
  *
- * Still to come in a later step: the organizer CTA banner (1.8d).
+ * That completes the homepage section list in docs/02-Spec.md §C.1.
  */
 
 import Link from "next/link";
@@ -18,6 +19,7 @@ import { CategoryChipRow } from "@/components/CategoryChip";
 import { EventCard } from "@/components/EventCard";
 import { FeaturedEventCard } from "@/components/FeaturedEventCard";
 import { FeaturedCarousel } from "@/components/FeaturedCarousel";
+import { OrganizerCTA } from "@/components/OrganizerCTA";
 import { getFeaturedEvents, getUpcomingEvents } from "@/lib/sample-events";
 
 /** How many EventCards the homepage grid shows before "See all events →". */
@@ -132,6 +134,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Step 1.8d — Organizer CTA banner ("Hosting an event?" → /host) */}
+      <OrganizerCTA />
     </main>
   );
 }

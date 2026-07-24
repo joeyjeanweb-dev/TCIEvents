@@ -23,7 +23,7 @@
 
 ---
 
-## Milestone 1 — Navigation, Footer & Homepage
+## Milestone 1 — Navigation, Footer & Homepage ✅ DONE
 
 - [x] 1.1 **Sample events data file** (`lib/sample-events.ts`, ~15 events) + event **images** in `public/events/`  _(verified by Joey 2026-07-23)_
 - [x] 1.2 Build **Header / Nav** (sticky, frosted-over-hero → solid on scroll, mobile hamburger)  _(verified by Joey 2026-07-23)_
@@ -36,14 +36,14 @@
 - [x] 1.5 Build **FeaturedEventCard** (with gold ★ badge)  _(verified by Joey 2026-07-23)_
 - [x] 1.6 Build **CategoryChip** row (horizontal scroll)  _(verified by Joey 2026-07-23)_
 - [x] 1.7 Build **SearchBar** (search + date + island + Go) — _now targets the **Discover** page top, not the hero (decided 2026-07-23)_  _(verified by Joey 2026-07-24)_
-- [ ] 1.8 Assemble **Homepage** (hero → categories → featured → upcoming → organizer CTA) + wire "See all events" → Discover, "List Your Event" → Host
+- [x] 1.8 Assemble **Homepage** (hero → categories → featured → upcoming → organizer CTA) + wire "See all events" → Discover, "List Your Event" → Host  _(verified by Joey 2026-07-24)_
   - [x] 1.8a **Hero** + **Explore by Category** section _(verified by Joey 2026-07-23)_ — built ahead of 1.7 by Joey's request
   - [x] 1.8b Featured events row _(verified by Joey 2026-07-23)_
     - [x] Fix — **ad-hoc, outside the numbered sequence**: added prev/next arrow
       buttons (`components/FeaturedCarousel.tsx`) so the row can be scrolled with a
       mouse; it previously relied on swipe only _(verified by Joey 2026-07-24)_
   - [x] 1.8c Upcoming grid + "See all events →" link _(verified by Joey 2026-07-24)_
-  - [ ] 1.8d Organizer CTA banner
+  - [x] 1.8d Organizer CTA banner _(verified by Joey 2026-07-24)_
 
 **✅ You'll see:** the full homepage with real-looking events.
 

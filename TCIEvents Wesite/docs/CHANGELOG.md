@@ -18,6 +18,41 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-24 — Milestone 1, Step 1.8d: Organizer CTA banner
+
+> The homepage now ends the way the spec describes it: a dark, full-width band
+> aimed at *organizers* rather than ticket buyers, with the gold
+> **List Your Event** button. This completes the homepage section list.
+
+- **Added** (`web/components/OrganizerCTA.tsx`): a new **OrganizerCTA** component
+  — a full-bleed photo band (`public/events/gallery-celebrate.jpg`) under a deep
+  ocean gradient wash, with a small "For organizers" pill, the headline
+  *"Hosting an event?"*, a line of subtext, and the gold gradient
+  **List Your Event** button.
+- **Added** (same file): responsive layout — text and button side-by-side from
+  `md` (768px) up, stacked and centred on phones.
+- **Added** (`web/app/page.tsx`): the banner is rendered as the last section of
+  the homepage, below the Upcoming Events grid.
+- **Changed** (same file): updated the file's top comment — the homepage now
+  covers every section in `docs/02-Spec.md` §C.1.
+- **Note:** the button links to `/host`, which arrives in Milestone 5, so it
+  currently 404s — expected at this stage, same as the `/discover` links.
+- **Note:** no invented statistics in the copy (no "1,000+ organizers" etc.),
+  per the data-honesty policy.
+- **Note:** while testing, a dev server left running from an earlier session was
+  serving a **stale** page — it never picked up the new component. File watching
+  is unreliable on the `/mnt/c` Windows drive under WSL. Restarting `npm run dev`
+  fixed it; worth remembering if an edit ever "doesn't show up".
+
+> **Verified by Joey:** [x] 2026-07-24
+>
+> **This completes Milestone 1** — header, footer, EventCard, FeaturedEventCard,
+> CategoryChip row, SearchBar, and the full homepage (hero → categories →
+> featured → upcoming → organizer CTA) are all built and verified.
+> Next up: Milestone 2, the Discover / Browse page.
+
+---
+
 ### 2026-07-24 — Milestone 1, Step 1.8c: Upcoming events grid + "See all events →"
 
 > The homepage now continues past the Featured carousel with a responsive grid of
