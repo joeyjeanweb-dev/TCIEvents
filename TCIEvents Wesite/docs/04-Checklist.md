@@ -51,12 +51,18 @@
 
 ## Milestone 2 — Discover / Browse page
 
-- [ ] Build the **Discover page** layout (search bar + count + sort)
-- [ ] Build **FilterPanel** (category, date, price, island, free-only)
-- [ ] Make filters work **live** (client-side filtering of sample events)
-- [ ] Add **Sort** (date / price / popularity)
-- [ ] Add **EmptyState** ("no events match your filters")
-- [ ] Make filters a **drawer** on mobile
+- [x] 2.1 Build the **Discover page** layout (search bar + count + grid)  _(verified by Joey 2026-07-24)_ — sort dropdown comes in 2.4
+  - [x] **Ad-hoc, outside the numbered sequence**: photo banner hero at the top of
+        Discover (Joey-supplied sunset beach-concert image) + reusable `PageHero`
+        component  _(verified by Joey 2026-07-24)_
+- [ ] 2.2 Build **FilterPanel** (category, date, price, island, free-only)
+- [ ] 2.3 Make filters work **live** (client-side filtering of sample events)
+      — _search / date / island / category already filter live as of 2.1; 2.3 adds
+      the panel's price + free-only controls_
+- [ ] 2.4 Add **Sort** (date / price / popularity)
+- [ ] 2.5 Add **EmptyState** ("no events match your filters") — _plain placeholder
+      message shipped in 2.1; 2.5 makes it the designed component_
+- [ ] 2.6 Make filters a **drawer** on mobile
 
 **✅ You'll see:** a working browse grid you can filter and sort.
 

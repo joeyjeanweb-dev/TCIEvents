@@ -18,6 +18,85 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-24 — Ad-hoc (outside the numbered sequence): photo hero on the Discover page
+
+> Joey supplied a sunset beach-concert image and asked for it as the Discover
+> page's hero, replacing the plain sand-coloured heading band from Step 2.1.
+
+- **Added** (`web/public/events/discover-hero.jpg`): the supplied image,
+  converted from a 2.4 MB PNG to a **236 KB JPEG** (1717×916, quality 82) with
+  `sharp` so it matches the other event photos and loads fast.
+- **Added** (`web/components/PageHero.tsx`): a new **PageHero** component — the
+  short photo banner for inner pages. It's the smaller sibling of `Hero.tsx`
+  (the tall homepage banner): about half the height, centred **white** text over
+  an ocean-tinted scrim, gold rule above the title, no CTA button. Built generic
+  so /about, /help and friends can reuse it in Milestone 6.
+- **Changed** (`web/app/discover/page.tsx`): the sand heading band is replaced by
+  `PageHero`; the search card is now lifted onto the banner's lower edge
+  (`-mt-14 md:-mt-16`) so it floats over the photo, as the spec pictures it.
+- **Note:** like the homepage hero, the banner is pulled up under the sticky
+  frosted header so the photo runs edge to edge behind it.
+- **Note:** image `alt` text describes the photo for screen readers and search
+  engines ("Crowd at a beachfront sunset concert beneath palm trees…").
+- **Note:** the dev server was found not to be picking up **any** file edits on
+  the `/mnt/c` Windows drive (not just new routes) — Turbopack's file watcher
+  can't see changes there from WSL, and Next 16 documents no polling fallback.
+  **Restart `npm run dev` after every change**, or move the project into the WSL
+  filesystem for a permanent fix.
+
+> **Verified by Joey:** [x] 2026-07-24
+
+---
+
+### 2026-07-24 — Milestone 2, Step 2.1: Discover page layout (search + count + grid)
+
+> `/discover` exists at last. Every link that has been 404-ing since Milestone 1 —
+> the hero's **Browse Events** button, **See all events →**, **View all events →**
+> and all ten category chips — now lands on a real page that shows the events,
+> pre-filtered to whatever the link asked for.
+
+- **Added** (`web/app/discover/page.tsx`): the **Discover page** — a server
+  component that reads the query string (`?q=`, `?date=`, `?island=`,
+  `?category=`), renders the page heading band, and hands the events plus the
+  starting filters to the interactive part below.
+- **Added** (`web/components/DiscoverBrowser.tsx`): the client component that
+  owns the interaction — the compact **SearchBar** (pre-filled from the URL), the
+  **result count** ("15 events"), small pills showing the active category/island,
+  a **Clear filters** button, and the responsive **EventCard grid**
+  (1 column on phones, 2 from 640px, 3 from 1024px).
+- **Added** (same file): pressing **Go** filters the grid *and* rewrites the
+  address bar, so a filtered view can be bookmarked or shared.
+- **Added** (`web/lib/filter-events.ts`): the filtering logic, kept out of the
+  components — free-text search (title, venue, island, organizer, category),
+  date presets, island and category, plus URL parsing/building helpers.
+  Unrecognised values in a hand-typed URL fall back to "all" instead of erroring.
+- **Added** (same file): date presets are worked out in **Turks & Caicos calendar
+  days** (`"YYYY-MM-DD"` strings), and "right now" is read once on the server and
+  passed to the browser, so the server and client always agree — no React
+  hydration warnings.
+- **Changed** (`web/components/SearchBar.tsx`): `DATE_FILTERS` / `DateFilter`
+  moved into `lib/filter-events.ts` so server code can use them without pulling
+  in a browser-only component. SearchBar re-exports them, so nothing that
+  imported them from there had to change.
+- **Changed** (`web/lib/sample-events.ts`): `TCI_TIME_ZONE` is now exported so the
+  new date helpers share the same time zone as the card date formatting.
+- **Note:** a plain "No events match your search" block appears when a filter
+  matches nothing (easy to see with **Date → This week**, since the sample events
+  all start in August). Step 2.5 replaces it with the proper designed EmptyState.
+- **Note:** still to come in this milestone — FilterPanel sidebar (2.2), its live
+  wiring incl. price + free-only (2.3), the **Sort** dropdown (2.4), the designed
+  EmptyState (2.5), and the mobile filter drawer (2.6).
+- **Note:** event cards still link to `/events/[slug]`, which arrives in
+  Milestone 3, so those 404 for now — expected, not a bug.
+- **Note:** verified with a production build (`npm run build` → clean, `/discover`
+  server-rendered on demand) because a dev server left running from an earlier
+  session was serving a stale 404 for the new route — the same `/mnt/c` file
+  watching problem noted on 1.8d. **Restart `npm run dev` before previewing.**
+
+> **Verified by Joey:** [x] 2026-07-24
+
+---
+
 ### 2026-07-24 — Milestone 1, Step 1.8d: Organizer CTA banner
 
 > The homepage now ends the way the spec describes it: a dark, full-width band

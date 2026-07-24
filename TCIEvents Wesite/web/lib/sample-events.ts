@@ -546,7 +546,7 @@ export function formatUSD(amount: number): string {
  * that fixed zone so the server and the browser always produce the same string
  * (a mismatch would cause a React hydration warning).
  */
-const TCI_TIME_ZONE = "America/Grand_Turk";
+export const TCI_TIME_ZONE = "America/Grand_Turk";
 
 /** Short date for cards, e.g. "Sat, Aug 29". */
 export function formatEventDate(iso: string): string {

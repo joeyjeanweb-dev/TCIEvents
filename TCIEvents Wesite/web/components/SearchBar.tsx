@@ -32,22 +32,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, CalendarDays, MapPin, ChevronDown } from "lucide-react";
 import { ISLANDS, type Island } from "@/lib/sample-events";
+import { DATE_FILTERS, type DateFilter } from "@/lib/filter-events";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Values
 // ---------------------------------------------------------------------------
 
-/** The date presets offered in the Date dropdown. */
-export const DATE_FILTERS = [
-  { value: "any", label: "Any date" },
-  { value: "today", label: "Today" },
-  { value: "weekend", label: "This weekend" },
-  { value: "week", label: "This week" },
-  { value: "month", label: "This month" },
-] as const;
-
-export type DateFilter = (typeof DATE_FILTERS)[number]["value"];
+/**
+ * The date presets now live in `lib/filter-events.ts` (Step 2.1) so that
+ * server-side code can use them too. They're re-exported here so anything that
+ * already imports them from this file keeps working.
+ */
+export { DATE_FILTERS };
+export type { DateFilter };
 
 /** Everything the bar knows. `island: "all"` means "no island filter". */
 export type SearchValues = {
