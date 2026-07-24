@@ -42,7 +42,7 @@
     - [x] Fix — **ad-hoc, outside the numbered sequence**: added prev/next arrow
       buttons (`components/FeaturedCarousel.tsx`) so the row can be scrolled with a
       mouse; it previously relied on swipe only _(verified by Joey 2026-07-24)_
-  - [ ] 1.8c Upcoming grid + "See all events →" link
+  - [x] 1.8c Upcoming grid + "See all events →" link _(verified by Joey 2026-07-24)_
   - [ ] 1.8d Organizer CTA banner
 
 **✅ You'll see:** the full homepage with real-looking events.

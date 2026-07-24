@@ -18,6 +18,26 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-24 — Milestone 1, Step 1.8c: Upcoming events grid + "See all events →"
+
+> The homepage now continues past the Featured carousel with a responsive grid of
+> the six soonest events, followed by a link through to the Discover page.
+
+- **Added** (`web/app/page.tsx`): an **Upcoming Events** section on the sand
+  background — centred heading (calendar icon + gold rule, matching the "Explore
+  by Category" treatment), a subtitle, and a grid of six **EventCard**s
+  (Step 1.4's component, reused as-is).
+- **Added** (same file): the grid is responsive — **1 column** on phones,
+  **2** from `sm` (640px), **3** from `lg` (1024px).
+- **Added** (same file): a centred **"See all events →"** outline button linking
+  to `/discover`. That page arrives in Milestone 2, so the link currently 404s —
+  expected at this stage, not a bug.
+- **Changed** (same file): the upcoming list is `getUpcomingEvents()` (soonest
+  first) with featured events filtered out, so no card appears twice on one
+  screen; capped at six by the `UPCOMING_COUNT` constant.
+
+> **Verified by Joey:** [x] 2026-07-24
+
 ### 2026-07-24 — Fix (ad-hoc — outside the numbered sequence): mobile menu drawer collapsed to a sliver
 
 > Joey opened the hamburger menu at phone width and the drawer rendered as a
