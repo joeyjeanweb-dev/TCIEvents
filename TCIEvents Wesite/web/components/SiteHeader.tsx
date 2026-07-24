@@ -51,87 +51,102 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 backdrop-blur-md transition-colors duration-300",
-        scrolled
-          ? "bg-white/95 shadow-soft"
-          : "bg-white/70 border-b border-white/40",
-      )}
-    >
-      <div className="container-page flex h-16 items-center justify-between gap-4 md:h-20">
-        {/* Logo → home */}
-        <Link href="/" aria-label="TCIEvents home" className="flex items-center">
-          <Image
-            src="/brand/tci-events-logo-trimmed.png"
-            alt="TCIEvents — Turks & Caicos Islands"
-            width={1032}
-            height={681}
-            priority
-            className="h-9 w-auto md:h-12"
-          />
-        </Link>
-
-        {/* Desktop navigation */}
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+    <>
+      <header
+        className={cn(
+          "sticky top-0 z-50 backdrop-blur-md transition-colors duration-300",
+          scrolled
+            ? "bg-white/95 shadow-soft"
+            : "bg-white/70 border-b border-white/40",
+        )}
+      >
+        <div className="container-page flex h-16 items-center justify-between gap-4 md:h-20">
+          {/* Logo → home */}
           <Link
-            href="/discover"
-            className="rounded-control px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-sand-100"
+            href="/"
+            aria-label="TCIEvents home"
+            className="flex items-center"
           >
-            Browse
+            <Image
+              src="/brand/tci-events-logo-trimmed.png"
+              alt="TCIEvents — Turks & Caicos Islands"
+              width={1032}
+              height={681}
+              priority
+              className="h-9 w-auto md:h-12"
+            />
           </Link>
 
-          {/* Categories dropdown (CSS hover + keyboard focus-within, no JS state) */}
-          <div className="group relative">
-            <button
-              type="button"
-              className="flex items-center gap-1 rounded-control px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-sand-100 group-focus-within:bg-sand-100"
-              aria-haspopup="menu"
+          {/* Desktop navigation */}
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+            <Link
+              href="/discover"
+              className="rounded-control px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-sand-100"
             >
-              Categories
-              <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
-            </button>
-            <div className="invisible absolute left-0 top-full pt-2 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-              <div className="grid w-64 gap-0.5 rounded-card border border-sand-200 bg-white p-2 shadow-lift">
-                {CATEGORIES.map((c) => (
-                  <Link
-                    key={c.key}
-                    href={`/discover?category=${c.key}`}
-                    className="flex items-center gap-2.5 rounded-control px-3 py-2 text-sm text-ink-900 transition hover:bg-sand-100"
-                  >
-                    <span aria-hidden className="text-base">
-                      {c.emoji}
-                    </span>
-                    {c.label}
-                  </Link>
-                ))}
+              Browse
+            </Link>
+
+            {/* Categories dropdown (CSS hover + keyboard focus-within, no JS state) */}
+            <div className="group relative">
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-control px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-sand-100 group-focus-within:bg-sand-100"
+                aria-haspopup="menu"
+              >
+                Categories
+                <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
+              </button>
+              <div className="invisible absolute left-0 top-full pt-2 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <div className="grid w-64 gap-0.5 rounded-card border border-sand-200 bg-white p-2 shadow-lift">
+                  {CATEGORIES.map((c) => (
+                    <Link
+                      key={c.key}
+                      href={`/discover?category=${c.key}`}
+                      className="flex items-center gap-2.5 rounded-control px-3 py-2 text-sm text-ink-900 transition hover:bg-sand-100"
+                    >
+                      <span aria-hidden className="text-base">
+                        {c.emoji}
+                      </span>
+                      {c.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-          <Link
-            href="/host"
-            className="ml-2 rounded-control bg-gradient-to-r from-gold-500 to-[#d9b64a] px-5 py-2.5 text-sm font-semibold text-ink-900 shadow-soft transition hover:brightness-105"
+            <Link
+              href="/host"
+              className="ml-2 rounded-control bg-gradient-to-r from-gold-500 to-[#d9b64a] px-5 py-2.5 text-sm font-semibold text-ink-900 shadow-soft transition hover:brightness-105"
+            >
+              List Your Event
+            </Link>
+          </nav>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            className="rounded-control p-2 text-ocean-900 transition hover:bg-sand-100 md:hidden"
           >
-            List Your Event
-          </Link>
-        </nav>
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+      </header>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          onClick={() => setMenuOpen(true)}
-          aria-label="Open menu"
-          aria-expanded={menuOpen}
-          className="rounded-control p-2 text-ocean-900 transition hover:bg-sand-100 md:hidden"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
-      </div>
+      {/*
+        Mobile drawer + backdrop.
 
-      {/* Mobile drawer + backdrop */}
+        This MUST live outside <header>. The header has `backdrop-blur-md`, and a
+        backdrop-filter makes an element the containing block for its fixed-position
+        descendants — so inside the header, `fixed inset-0` sized itself to the 64px
+        header bar instead of the screen, collapsing the drawer to a sliver and
+        spilling the gold button out over the page. As a sibling of <header> it is
+        measured against the viewport again, as intended.
+      */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-[60] md:hidden">
           {/* Backdrop */}
           <button
             type="button"
@@ -139,9 +154,9 @@ export function SiteHeader() {
             onClick={() => setMenuOpen(false)}
             className="absolute inset-0 bg-ocean-900/40 backdrop-blur-sm"
           />
-          {/* Panel */}
-          <div className="absolute right-0 top-0 flex h-full w-[82%] max-w-sm flex-col bg-white shadow-lift">
-            <div className="flex h-16 items-center justify-between border-b border-sand-200 px-5">
+          {/* Panel — inset-y-0 pins it to the full viewport height */}
+          <div className="absolute inset-y-0 right-0 flex w-[82%] max-w-sm flex-col bg-white shadow-lift">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-sand-200 px-5">
               <Image
                 src="/brand/tci-events-logo-trimmed.png"
                 alt="TCIEvents"
@@ -160,11 +175,12 @@ export function SiteHeader() {
             </div>
 
             <nav
-              className="flex-1 overflow-y-auto px-4 py-4"
+              className="min-h-0 flex-1 overflow-y-auto px-4 py-4"
               aria-label="Mobile"
             >
               <Link
                 href="/discover"
+                onClick={() => setMenuOpen(false)}
                 className="block rounded-control px-3 py-3 text-base font-medium text-ink-900 transition hover:bg-sand-100"
               >
                 Browse
@@ -178,6 +194,7 @@ export function SiteHeader() {
                   <Link
                     key={c.key}
                     href={`/discover?category=${c.key}`}
+                    onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 rounded-control px-3 py-2.5 text-sm text-ink-900 transition hover:bg-sand-100"
                   >
                     <span aria-hidden>{c.emoji}</span>
@@ -187,9 +204,10 @@ export function SiteHeader() {
               </div>
             </nav>
 
-            <div className="border-t border-sand-200 p-4">
+            <div className="shrink-0 border-t border-sand-200 p-4">
               <Link
                 href="/host"
+                onClick={() => setMenuOpen(false)}
                 className="block rounded-control bg-gradient-to-r from-gold-500 to-[#d9b64a] px-5 py-3 text-center text-sm font-semibold text-ink-900 shadow-soft transition hover:brightness-105"
               >
                 List Your Event
@@ -198,6 +216,6 @@ export function SiteHeader() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

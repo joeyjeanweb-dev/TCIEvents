@@ -27,11 +27,15 @@
 
 - [x] 1.1 **Sample events data file** (`lib/sample-events.ts`, ~15 events) + event **images** in `public/events/`  _(verified by Joey 2026-07-23)_
 - [x] 1.2 Build **Header / Nav** (sticky, frosted-over-hero → solid on scroll, mobile hamburger)  _(verified by Joey 2026-07-23)_
+  - [x] Fix — **ad-hoc, outside the numbered sequence**: the mobile drawer
+    collapsed to a sliver because the header's `backdrop-blur` was acting as the
+    containing block for its `fixed` child; drawer moved outside `<header>`
+    _(verified by Joey 2026-07-24)_
 - [x] 1.3 Build **Footer** (links + newsletter box + social)  _(verified by Joey 2026-07-23)_
 - [x] 1.4 Build reusable **EventCard** component  _(verified by Joey 2026-07-23)_
 - [x] 1.5 Build **FeaturedEventCard** (with gold ★ badge)  _(verified by Joey 2026-07-23)_
 - [x] 1.6 Build **CategoryChip** row (horizontal scroll)  _(verified by Joey 2026-07-23)_
-- [ ] 1.7 Build **SearchBar** (search + date + island + Go) — _now targets the **Discover** page top, not the hero (decided 2026-07-23)_
+- [x] 1.7 Build **SearchBar** (search + date + island + Go) — _now targets the **Discover** page top, not the hero (decided 2026-07-23)_  _(verified by Joey 2026-07-24)_
 - [ ] 1.8 Assemble **Homepage** (hero → categories → featured → upcoming → organizer CTA) + wire "See all events" → Discover, "List Your Event" → Host
   - [x] 1.8a **Hero** + **Explore by Category** section _(verified by Joey 2026-07-23)_ — built ahead of 1.7 by Joey's request
   - [x] 1.8b Featured events row _(verified by Joey 2026-07-23)_

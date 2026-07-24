@@ -18,6 +18,71 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-24 — Fix (ad-hoc — outside the numbered sequence): mobile menu drawer collapsed to a sliver
+
+> Joey opened the hamburger menu at phone width and the drawer rendered as a
+> short transparent strip: the nav links were squashed to nothing and the gold
+> "List Your Event" button floated outside the panel over the page.
+>
+> **Cause — a CSS containing-block trap, not a markup mistake.** The drawer was a
+> child of `<header>`, and the header carries `backdrop-blur-md`. An element with
+> a `backdrop-filter` (like `transform` and `filter`) becomes the **containing
+> block for its `position: fixed` descendants**. So the drawer's `fixed inset-0`
+> measured itself against the 64px-tall header bar instead of the viewport — the
+> panel's `h-full` resolved to ~64px, the scrolling nav collapsed, and the footer
+> button overflowed visibly below.
+>
+> - **Fixed** (`web/components/SiteHeader.tsx`): the drawer + backdrop now render
+>   as a **sibling** of `<header>` (component returns a fragment), outside the
+>   blur's containing block, so `fixed inset-0` is viewport-relative again. A
+>   comment in the file records why it must stay there.
+> - **Changed** (same file): panel uses `inset-y-0` instead of `h-full`; the
+>   drawer header/footer get `shrink-0` and the nav `min-h-0` so only the link
+>   list scrolls; drawer `z-[60]` sits above the `z-50` header; every drawer link
+>   now closes the menu on click (previously only the route-change effect did).
+> - `npm run build` passes.
+>
+> **Verified by Joey:** [x] 2026-07-24
+
+### 2026-07-24 — Milestone 1, Step 1.7: SearchBar component
+
+> The search + date + island + Go control bar. Per the 2026-07-23 decision it
+> targets the **top of the Discover page** (Milestone 2), not the homepage hero —
+> the hero stays clean with its single gold CTA, matching the approved mockup.
+>
+> - **Added** (`web/components/SearchBar.tsx`): the `SearchBar` client component.
+>   - A free-text search box, a **Date** dropdown of friendly presets (Any date /
+>     Today / This weekend / This week / This month) instead of a calendar picker,
+>     an **Island** dropdown built from `ISLANDS` in `lib/sample-events.ts`, and a
+>     `Go` submit button.
+>   - Two behaviours: by default submitting navigates to
+>     `/discover?q=…&date=…&island=…` (defaults are left out so the URL stays
+>     clean); pass an `onSubmit` prop and it hands the values back instead, which
+>     is how Discover will filter its grid live in Milestone 2.
+>   - `defaultValues` pre-fills the bar (for landing on Discover from a category
+>     chip or a shared link). `size="compact" | "large"` switches field height.
+>   - Responsive: one white divided bar from `md` up; below that it stacks —
+>     search on top, the two dropdowns side by side, full-width Go button.
+>   - Accessibility: native `<select>`s (real mobile pickers + keyboard/screen
+>     reader support) with our own chevron drawn over them, `sr-only` labels on
+>     every field, and visible focus rings.
+>   - Also exports `DATE_FILTERS`, the `SearchValues` / `DateFilter` types, and
+>     `buildDiscoverHref()` so Milestone 2 can reuse them.
+> - **Added** (`web/app/preview/search/`): a temporary `/preview/search` route
+>   showing the compact, large, pre-filled and on-sand versions, plus a small
+>   demo that prints the submitted values rather than navigating. Deleted once
+>   the Discover page is live.
+> - `npm run build` passes (TypeScript clean, 4 static routes).
+>
+> **Honest-link note:** `/discover` doesn't exist until Milestone 2, so pressing
+> Go 404s for now — intentional, same as the category chips.
+>
+> **Pre-existing, not introduced here:** `npm run lint` reports one error in
+> `components/SiteHeader.tsx:42` (`setState` inside an effect, from Step 1.2).
+> Left alone — flag it if you want it fixed as an ad-hoc item.
+>
+> **Verified by Joey:** [x] 2026-07-24
+
 ### 2026-07-24 — Fix (ad-hoc — outside the numbered sequence): featured row wouldn't scroll right on desktop
 
 > Joey reported he couldn't move right through the Featured Events row. The row
