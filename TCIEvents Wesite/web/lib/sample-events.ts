@@ -567,6 +567,28 @@ export function formatEventTime(iso: string): string {
   });
 }
 
+/** Long date for the event details page, e.g. "Saturday, August 29, 2026". */
+export function formatEventDateLong(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: TCI_TIME_ZONE,
+  });
+}
+
+/**
+ * Start–end time for the details page, e.g. "8:00 PM – 1:00 AM".
+ * When the event runs past midnight the end time lands on the next day, so we
+ * add the end date too: "8:00 PM – 1:00 AM (Sun, Aug 30)".
+ */
+export function formatEventTimeRange(startISO: string, endISO: string): string {
+  const range = `${formatEventTime(startISO)} – ${formatEventTime(endISO)}`;
+  const sameDay = formatEventDate(startISO) === formatEventDate(endISO);
+  return sameDay ? range : `${range} (${formatEventDate(endISO)})`;
+}
+
 export const STATUS_LABEL: Record<EventStatus, string> = {
   available: "Tickets available",
   almost_sold_out: "Almost sold out",

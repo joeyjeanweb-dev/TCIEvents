@@ -9,8 +9,7 @@
  *  - date · time, title, venue · island, and a "from $XX" / "Free" price
  *
  * The whole card is a single link to the event's details page
- * (`/events/[slug]`). That page is built in Milestone 3, so for now the link
- * 404s — that's expected and intentional, not a bug.
+ * (`/events/[slug]`), which exists as of Milestone 3, Step 3.1.
  *
  * This is a plain (server) component: all the hover motion is pure CSS, so it
  * needs no "use client" and ships zero JavaScript.

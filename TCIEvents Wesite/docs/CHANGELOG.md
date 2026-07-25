@@ -18,6 +18,57 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-25 — Milestone 3, Step 3.1: the Event Details page exists (cover, title, meta, breadcrumb)
+
+> Every event card on the site has been linking to `/events/[slug]` since
+> Milestone 1, and every one of those links 404'd. They work now. Click any card
+> and you land on a full-bleed cover photo with the event's name over it, a
+> breadcrumb back to Discover, the About text, and a "When & where" panel.
+> The ticket steppers and totals are **not** here yet — that's Step 3.2 — so the
+> right-hand column holds a plainly-labelled placeholder instead of fake
+> controls.
+
+- **Added** (`web/app/events/[slug]/page.tsx`): the Event Details page.
+  - **Breadcrumb** — Home / Discover / *event name*, laid over the top of the
+    cover photo (`docs/03-Wireframes.md` §4).
+  - **Cover section** — the event's photo running edge-to-edge behind the sticky
+    header, darkened with the same ocean scrim `PageHero` uses, with the
+    category chip, the gold ★ **Featured** badge (only on featured events), the
+    title, a date · time · venue line and "by [Organizer] ✔ verified".
+  - **Left column** — a ticket-status pill ("Tickets available" / "Almost sold
+    out" / "Sold out"), **About this event** (the description's paragraphs), and
+    a **When & where** panel with the long date, the start–end time, the venue +
+    street address and the organizer.
+  - **Right column** — the slot the sticky Tickets card will occupy, currently
+    showing the honest "from $X" price, the number of ticket types, and a note
+    that ticket selection arrives in the next step.
+- **Added** (`web/lib/sample-events.ts`): two date helpers for this page —
+  `formatEventDateLong()` ("Saturday, August 29, 2026") and
+  `formatEventTimeRange()` ("8:00 PM – 1:00 AM"). The range appends the end date
+  when an event runs past midnight, so the Full Moon Beach Party reads
+  "8:00 PM – 1:00 AM (Sun, Aug 30)" instead of looking like it ends before it
+  starts. Both format in `America/Grand_Turk`, like the existing helpers.
+- **Added**: `generateStaticParams()` — all 15 event pages are now pre-rendered
+  at build time (confirmed in the build output) rather than built on first
+  visit, and an unknown slug like `/events/nope` renders the normal 404 page.
+- **Added**: a per-event browser-tab title and description via
+  `generateMetadata()`. Full Open Graph / social-share tags are still a separate
+  checklist item later in this milestone.
+- **Note — not built yet in this step** (each is its own checklist item): ticket
+  steppers + live totals, the map, the photo gallery, "More from this
+  organizer", the desktop sticky card / mobile bottom buy-bar, and OG tags.
+- **Gotcha worth remembering** (cost us a few minutes here): a `npm run dev`
+  server that was already running kept returning **404** for the brand-new
+  `/events/...` route. Next.js normally notices new files, but this project
+  lives on the Windows `/mnt/c` drive and WSL's file watcher misses
+  *newly created* files there. **Fix: restart the dev server** whenever a new
+  page/file 404s. (Editing an existing file hot-reloads fine.) Also note the
+  second server refuses to start and tells you the port + PID of the first one —
+  `Run kill <PID> to stop it`.
+- **Verified by Joey:** [x] 2026-07-25
+
+---
+
 ### 2026-07-25 — Milestone 2, Step 2.6: filters become a slide-up drawer on mobile
 
 > On phones the filter panel no longer pushes the results down the page. The

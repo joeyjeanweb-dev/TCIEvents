@@ -88,15 +88,23 @@
 
 ## Milestone 3 — Event Details page
 
-- [ ] Build the **Event Details** layout (cover, title, meta, breadcrumb)
-- [ ] Build the **Tickets card** with **TicketOption** −/+ steppers
-- [ ] Live **subtotal + 5% fee + total** calculation (visual only, no charge)
-- [ ] Add **map** (static/embedded) and **photo gallery**
-- [ ] Add **"More from this organizer"** row
-- [ ] Make ticket card **sticky** on desktop; **bottom buy-bar** on mobile
-- [ ] **[Get Tickets]** → goes to the checkout flow (Milestone 4)
-- [ ] Add **Open Graph tags** so shared links look great
-- [ ] Link every EventCard → its details page (`/events/[slug]`)
+- [x] 3.1 Build the **Event Details** layout (cover, title, meta, breadcrumb)
+      _(verified by Joey 2026-07-25)_ — `app/events/[slug]/page.tsx`: breadcrumb over
+      the cover photo, category + ★ Featured badges, title, date/time/venue,
+      organizer, About paragraphs, "When & where" panel, and the empty right-hand
+      column reserved for the Tickets card. All 15 pages pre-rendered via
+      `generateStaticParams`; unknown slugs 404
+- [ ] 3.2 Build the **Tickets card** with **TicketOption** −/+ steppers
+- [ ] 3.3 Live **subtotal + 5% fee + total** calculation (visual only, no charge)
+- [ ] 3.4 Add **map** (static/embedded) and **photo gallery**
+- [ ] 3.5 Add **"More from this organizer"** row
+- [ ] 3.6 Make ticket card **sticky** on desktop; **bottom buy-bar** on mobile
+- [ ] 3.7 **[Get Tickets]** → goes to the checkout flow (Milestone 4)
+- [ ] 3.8 Add **Open Graph tags** so shared links look great
+- [x] 3.9 Link every EventCard → its details page (`/events/[slug]`)
+      _(verified by Joey 2026-07-25)_ — the cards
+      have linked there since Milestone 1; as of 3.1 the destination exists, so
+      this is covered by 3.1's verify
 
 **✅ You'll see:** click any event card → a full, beautiful event page.
 
