@@ -1,5 +1,5 @@
 /**
- * DiscoverBrowser — the interactive part of the Discover page (Steps 2.1–2.3).
+ * DiscoverBrowser — the interactive part of the Discover page (Steps 2.1–2.4).
  *
  * The page itself (`app/discover/page.tsx`) is a normal server component: it
  * reads the URL, hands us the events and the starting filters, and stops there.
@@ -12,8 +12,13 @@
  *     desktop, and behind a "Filters" button on mobile,
  *   - keeps the chosen filters in React state and filters the list live,
  *   - shows the result count, a pill per active filter, and "Clear filters",
+ *   - shows the Sort dropdown (Step 2.4) and re-orders the grid,
  *   - renders the responsive EventCard grid,
  *   - shows a friendly message when nothing matches.
+ *
+ * Sort is deliberately kept *out* of the `filters` object: it doesn't hide any
+ * events, so it shouldn't light up "Clear filters" or get wiped when you press
+ * it. Filter = which events; sort = what order.
  *
  * Two pieces of state, and the difference matters:
  *   - **`filters`** = what the grid is actually showing. Changing anything in
@@ -25,7 +30,6 @@
  *   dropdowns showing the same thing as the sidebar's radio buttons.
  *
  * Still to come in this milestone:
- *   - Step 2.4: the Sort dropdown (date / price / popularity),
  *   - Step 2.5: a proper designed EmptyState component,
  *   - Step 2.6: turn the mobile filter section into a slide-up drawer.
  *
@@ -43,6 +47,7 @@ import { SearchX, SlidersHorizontal } from "lucide-react";
 import { EventCard } from "@/components/EventCard";
 import { FilterPanel } from "@/components/FilterPanel";
 import { SearchBar, type SearchValues } from "@/components/SearchBar";
+import { SortSelect } from "@/components/SortSelect";
 import {
   countByCategory,
   countFree,
@@ -51,7 +56,9 @@ import {
   filterEvents,
   hasActiveFilters,
   priceCeiling,
+  sortEvents,
   type DiscoverFilters,
+  type SortOption,
 } from "@/lib/filter-events";
 import { CATEGORY_MAP, type SampleEvent } from "@/lib/sample-events";
 import { cn } from "@/lib/utils";
@@ -59,17 +66,21 @@ import { cn } from "@/lib/utils";
 export function DiscoverBrowser({
   events,
   initialFilters,
+  initialSort,
   nowISO,
 }: {
   /** Every sample event, already sorted soonest-first by the page. */
   events: SampleEvent[];
   /** Where we start, read from `/discover?q=…&category=…` on the server. */
   initialFilters: DiscoverFilters;
+  /** Starting sort order, read from `?sort=` on the server (Step 2.4). */
+  initialSort: SortOption;
   /** "Right now", captured once on the server (see lib/filter-events.ts). */
   nowISO: string;
 }) {
   const router = useRouter();
   const [filters, setFilters] = useState<DiscoverFilters>(initialFilters);
+  const [sort, setSort] = useState<SortOption>(initialSort);
   const [draft, setDraft] = useState<SearchValues>({
     q: initialFilters.q,
     date: initialFilters.date,
@@ -80,10 +91,16 @@ export function DiscoverBrowser({
 
   // useMemo = only re-run the filtering when the inputs actually change,
   // instead of on every single re-render.
-  const results = useMemo(
+  //
+  // Filter first, then sort: sorting the 15 that survived is cheaper than
+  // sorting all of them and throwing most away — and the two are separate memos
+  // so changing the sort doesn't re-run the filtering at all.
+  const matched = useMemo(
     () => filterEvents(events, filters, nowISO),
     [events, filters, nowISO],
   );
+
+  const results = useMemo(() => sortEvents(matched, sort), [matched, sort]);
 
   const counts = useMemo(
     () => countByCategory(events, filters, nowISO),
@@ -102,7 +119,13 @@ export function DiscoverBrowser({
   function apply(next: DiscoverFilters) {
     setFilters(next);
     setDraft({ q: next.q, date: next.date, island: next.island });
-    router.replace(discoverHref(next), { scroll: false });
+    router.replace(discoverHref(next, sort), { scroll: false });
+  }
+
+  /** Same idea for the Sort dropdown: re-order the grid and update the URL. */
+  function applySort(next: SortOption) {
+    setSort(next);
+    router.replace(discoverHref(filters, next), { scroll: false });
   }
 
   /** The SearchBar hands back its three fields; the sidebar's stay as they are. */
@@ -123,26 +146,37 @@ export function DiscoverBrowser({
         className="mx-auto max-w-4xl"
       />
 
-      {/* ---- Count + active filters + clear ---- */}
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-sand-200 pb-4">
-        <p className="text-sm text-ink-500">
-          <span className="font-semibold text-ink-900">{results.length}</span>{" "}
-          {results.length === 1 ? "event" : "events"}
-          {isFiltered && <span> matching your search</span>}
-        </p>
+      {/*
+        ---- Results bar: count on the left, Sort on the right ----
+        Wireframe §3: "42 events        Sort: Date ▾". The active-filter pills
+        drop onto their own line underneath so that a handful of them can't push
+        the Sort dropdown off the end of the row.
+      */}
+      <div className="mt-8 border-b border-sand-200 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-ink-500">
+            <span className="font-semibold text-ink-900">{results.length}</span>{" "}
+            {results.length === 1 ? "event" : "events"}
+            {isFiltered && <span> matching your search</span>}
+          </p>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Small read-only pills describing what's currently narrowed down. */}
-          {filters.categories.map((category) => (
-            <FilterTag key={category}>{CATEGORY_MAP[category].label}</FilterTag>
-          ))}
-          {filters.island !== "all" && <FilterTag>{filters.island}</FilterTag>}
-          {filters.freeOnly && <FilterTag>Free only</FilterTag>}
-          {!filters.freeOnly && filters.maxPrice !== null && (
-            <FilterTag>Up to ${filters.maxPrice}</FilterTag>
-          )}
+          <SortSelect value={sort} onChange={applySort} />
+        </div>
 
-          {isFiltered && (
+        {isFiltered && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {/* Small read-only pills describing what's currently narrowed down. */}
+            {filters.categories.map((category) => (
+              <FilterTag key={category}>
+                {CATEGORY_MAP[category].label}
+              </FilterTag>
+            ))}
+            {filters.island !== "all" && <FilterTag>{filters.island}</FilterTag>}
+            {filters.freeOnly && <FilterTag>Free only</FilterTag>}
+            {!filters.freeOnly && filters.maxPrice !== null && (
+              <FilterTag>Up to ${filters.maxPrice}</FilterTag>
+            )}
+
             <button
               type="button"
               onClick={() => apply(DEFAULT_FILTERS)}
@@ -150,8 +184,8 @@ export function DiscoverBrowser({
             >
               Clear filters
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/*

@@ -18,6 +18,69 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-25 — Milestone 2, Step 2.4: Sort dropdown (date / price / popularity)
+
+> The results bar gains the **Sort ▾** control from the wireframe. The grid can
+> now be re-ordered by date, by price, or by how popular an event is — and the
+> choice rides along in the URL like the filters do.
+
+- **Added** (`web/components/SortSelect.tsx`): the **Sort dropdown**, sitting at
+  the right-hand end of the results bar opposite the event count, exactly as
+  `docs/03-Wireframes.md` §3 draws it ("42 events … Sort: Date ▾"). It's a
+  native `<select>` with our own chevron drawn over it — same approach as the
+  SearchBar's dropdowns, so phones get their proper wheel picker and keyboard /
+  screen-reader users get it working for free. The visible "Sort" text is a real
+  `<label>`, so clicking the word opens the menu.
+- **Added** (`web/lib/filter-events.ts`): `SORT_OPTIONS`, `sortEvents()` and
+  `parseSortOption()`. Three orders, with the direction spelled out in the label
+  so you're never guessing:
+  - **Date — soonest first** (the default),
+  - **Price — low to high**, judged on an event's *cheapest* ticket, so the free
+    events lead and the $250 fishing tournament brings up the rear,
+  - **Most popular** (see the honesty note below).
+  Every order falls back to "soonest first" to break ties, so two $0 events or
+  two equally popular ones still read as a sensible calendar.
+- **Added** (`web/lib/filter-events.ts`): the URL now carries the sort too —
+  `/discover?sort=price`, `?sort=popularity`. Date order is the default, so it's
+  left out of the URL entirely. An unrecognised value (`?sort=banana`) quietly
+  falls back to date order instead of breaking the page.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): filters and sort are kept
+  as **separate** pieces of state on purpose — sorting doesn't hide any events,
+  so it must not light up "Clear filters", and pressing "Clear filters" must not
+  throw away the order you picked. The grid now filters first and sorts the
+  survivors, in two separate `useMemo`s, so changing the sort doesn't re-run the
+  filtering.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): the results bar is now two
+  rows — count and Sort on the first, the active-filter pills and "Clear
+  filters" on a second row underneath. Previously the pills shared a row with
+  the count, and a handful of them would have shoved the new dropdown off the
+  end on a narrow screen.
+- **Honest-data note** (CLAUDE.md §Data-honesty): Phase 1 has no ticket sales,
+  so there is no real popularity figure — and we won't invent one ("1,284 sold"
+  would be a lie). **Most popular** is worked out from two signals the sample
+  data genuinely carries: whether an event is **featured** (+2) and how its
+  tickets are moving — *Almost sold out* (+2), *Sold out* (+1). Sold-out events
+  score lower than almost-sold-out ones on purpose: they were clearly popular,
+  but you can't buy them, so they shouldn't crowd out the things you can still
+  get into. Today that puts the Sunset Catamaran Cruise and the New Year's Eve
+  Gala at the top. When real sales data arrives in a later phase, one small
+  function (`popularityScore`) is the only thing that has to change.
+- **Note:** `npm run lint` still reports the same one **pre-existing** error in
+  `SiteHeader.tsx` (setState inside an effect, from Milestone 1). Untouched by
+  this step; `npm run build` passes clean.
+- **Note (environment, no code change):** the new dropdown appeared to be
+  missing when Joey first looked. The cause was the **dev server**, not the
+  code: the `next dev` process had been running for ~13½ hours and had stopped
+  noticing file changes. The project sits on the Windows drive (`/mnt/c/…`) and
+  file-change events don't reliably reach a long-running watcher in WSL2.
+  Restarting `npm run dev` fixed it. **If a future change doesn't show up,
+  suspect this first** — stop the dev server, start it again, and hard-refresh
+  (Ctrl+Shift+R).
+
+> **Verified by Joey:** [x] 2026-07-25
+
+---
+
 ### 2026-07-24 — Milestone 2, Step 2.3: price + free-only filters go live
 
 > The last two filter controls stop being decorative. The **price slider** and

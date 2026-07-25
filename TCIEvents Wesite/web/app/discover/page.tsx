@@ -1,5 +1,5 @@
 /**
- * Discover / Browse page (`/discover`) — Milestone 2, Steps 2.1–2.3.
+ * Discover / Browse page (`/discover`) — Milestone 2, Steps 2.1–2.4.
  *
  * This is the page the homepage hero button, the "See all events" link, the
  * category chips and the SearchBar have all been pointing at since Milestone 1.
@@ -9,20 +9,24 @@
  *     the starting filters, and renders the page furniture (heading, container).
  *     It ships no JavaScript of its own.
  *   - **`DiscoverBrowser` is the client component.** It owns the interactive
- *     bits — the search bar, the FilterPanel sidebar, the live filtering, the
- *     result count and the grid.
+ *     bits — the search bar, the FilterPanel sidebar, the live filtering and
+ *     sorting, the result count and the grid.
  *
  * Next.js 16 note: `searchParams` is a **Promise** here (it used to be a plain
  * object in older versions), so it has to be `await`ed — hence `async function`.
  *
- * Still to come in this milestone: the Sort dropdown (2.4), the designed
- * EmptyState (2.5) and the mobile filter drawer (2.6).
+ * Still to come in this milestone: the designed EmptyState (2.5) and the mobile
+ * filter drawer (2.6).
  */
 
 import type { Metadata } from "next";
 import { DiscoverBrowser } from "@/components/DiscoverBrowser";
 import { PageHero } from "@/components/PageHero";
-import { discoverHref, parseDiscoverFilters } from "@/lib/filter-events";
+import {
+  discoverHref,
+  parseDiscoverFilters,
+  parseSortOption,
+} from "@/lib/filter-events";
 import { getUpcomingEvents } from "@/lib/sample-events";
 
 export const metadata: Metadata = {
@@ -38,9 +42,11 @@ export default async function DiscoverPage({
 }) {
   const params = await searchParams;
   const filters = parseDiscoverFilters(params);
+  // `?sort=price` / `?sort=popularity`; anything else means date order.
+  const sort = parseSortOption(params);
 
-  // Soonest-first. The browser component filters this list; it never re-sorts,
-  // so the grid stays in date order until the Sort dropdown lands in Step 2.4.
+  // Soonest-first. That's both the default order and the starting point the
+  // browser component re-sorts from when you change the Sort dropdown.
   const events = getUpcomingEvents();
 
   // Read the clock ONCE, here on the server, and pass it down. Both the server
@@ -74,9 +80,10 @@ export default async function DiscoverPage({
           */}
           <div className="relative z-10 -mt-14 md:-mt-16">
             <DiscoverBrowser
-              key={discoverHref(filters)}
+              key={discoverHref(filters, sort)}
               events={events}
               initialFilters={filters}
+              initialSort={sort}
               nowISO={nowISO}
             />
           </div>

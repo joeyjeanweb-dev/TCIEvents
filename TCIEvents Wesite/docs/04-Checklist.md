@@ -63,7 +63,10 @@
       filtered live as of 2.1–2.2; 2.3 switched on the panel's **price slider**
       ($25 steps, max $250, derived from the data) and **Free events only**
       checkbox, added their pills, and put them in the URL (`?max=`, `?free=1`)_
-- [ ] 2.4 Add **Sort** (date / price / popularity)
+- [x] 2.4 Add **Sort** (date / price / popularity) _(verified by Joey 2026-07-25)_
+      — dropdown at the right of the results bar; sort lives in the URL
+      (`?sort=price`). "Most popular" is derived honestly from `featured` +
+      ticket status, **not** from invented sales numbers
 - [ ] 2.5 Add **EmptyState** ("no events match your filters") — _plain placeholder
       message shipped in 2.1; 2.5 makes it the designed component_
 - [ ] 2.6 Make filters a **drawer** on mobile

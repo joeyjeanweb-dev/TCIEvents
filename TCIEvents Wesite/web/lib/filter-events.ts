@@ -12,6 +12,9 @@
  * Step 2.2 turns category into a **multi-select** (the FilterPanel shows a
  * checkbox per category, so you can tick Music *and* Food at once).
  * Step 2.3 adds the last two: a **maximum price** and a **free-only** switch.
+ * Step 2.4 adds **sorting** (date / price / popularity) — see the bottom of the
+ * file. Sorting is kept separate from filtering on purpose: filters decide
+ * *which* events you see, sort decides *what order* they come in.
  */
 
 import {
@@ -208,10 +211,14 @@ export function parseDiscoverFilters(
 }
 
 /**
- * The reverse: build a shareable `/discover?…` URL from the current filters.
+ * The reverse: build a shareable `/discover?…` URL from the current filters
+ * (and, since Step 2.4, the chosen sort order).
  * Defaults are left out so the URL stays short and readable.
  */
-export function discoverHref(filters: DiscoverFilters): string {
+export function discoverHref(
+  filters: DiscoverFilters,
+  sort: SortOption = DEFAULT_SORT,
+): string {
   const params = new URLSearchParams();
   if (filters.q.trim()) params.set("q", filters.q.trim());
   if (filters.date !== "any") params.set("date", filters.date);
@@ -226,6 +233,8 @@ export function discoverHref(filters: DiscoverFilters): string {
   } else if (filters.maxPrice !== null) {
     params.set("max", String(filters.maxPrice));
   }
+  // Date order is the default, so it never needs to appear in the URL.
+  if (sort !== DEFAULT_SORT) params.set("sort", sort);
   const query = params.toString();
   return query ? `/discover?${query}` : "/discover";
 }
@@ -421,4 +430,99 @@ export function countFree(
     { ...filters, freeOnly: true, maxPrice: null },
     nowISO,
   ).length;
+}
+
+// ---------------------------------------------------------------------------
+// Sorting (Step 2.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * The three orders offered in the Sort dropdown (`docs/02-Spec.md` §Discover).
+ *
+ * The labels spell out the *direction* ("soonest first", "low to high") because
+ * a bare "Date" leaves you guessing whether you're about to see next weekend or
+ * New Year's Eve.
+ */
+export const SORT_OPTIONS = [
+  { value: "date", label: "Date — soonest first" },
+  { value: "price", label: "Price — low to high" },
+  { value: "popularity", label: "Most popular" },
+] as const;
+
+export type SortOption = (typeof SORT_OPTIONS)[number]["value"];
+
+/** What the grid shows if you never touch the dropdown. */
+export const DEFAULT_SORT: SortOption = "date";
+
+/** `?sort=price` → "price". Anything unrecognised falls back to date order. */
+export function parseSortOption(
+  searchParams: Record<string, RawParam>,
+): SortOption {
+  const value = firstValue(searchParams.sort);
+  return SORT_OPTIONS.some((option) => option.value === value)
+    ? (value as SortOption)
+    : DEFAULT_SORT;
+}
+
+/**
+ * How "popular" an event is, 0–4.
+ *
+ * **Honest-data note (see CLAUDE.md §Data-honesty).** Phase 1 has no ticket
+ * sales, so there is no real popularity number to sort by — and we refuse to
+ * invent one ("1,284 sold" would be a lie). Instead the score is worked out from
+ * two signals the sample data genuinely carries:
+ *
+ *   - `featured` — the events the site itself is promoting (+2),
+ *   - `status` — how the tickets are moving: "Almost sold out" is the strongest
+ *     demand signal we have (+2). "Sold out" scores +1 rather than +2: it was
+ *     clearly popular, but you can't buy it, so it shouldn't crowd the top of
+ *     the list ahead of things you can still get into.
+ *
+ * When real sales data arrives in a later phase, this one function is the only
+ * thing that has to change.
+ */
+function popularityScore(event: SampleEvent): number {
+  const featured = event.featured ? 2 : 0;
+  const demand =
+    event.status === "almost_sold_out" ? 2 : event.status === "sold_out" ? 1 : 0;
+  return featured + demand;
+}
+
+/** Milliseconds since 1970 — used to put events in calendar order. */
+function startTime(event: SampleEvent): number {
+  return new Date(event.startAt).getTime();
+}
+
+/**
+ * Put a list of events into the chosen order.
+ *
+ * Returns a **new array** (`[...events]`) rather than sorting in place, because
+ * `Array.prototype.sort` mutates — and the list handed in here is the shared
+ * sample-events array. Re-ordering it would quietly change the homepage too.
+ *
+ * Every order ends with the same tie-breaker, "soonest first": two $40 events
+ * or two equally-popular events should still read as a sensible calendar.
+ */
+export function sortEvents(
+  events: SampleEvent[],
+  sort: SortOption,
+): SampleEvent[] {
+  const byDate = (a: SampleEvent, b: SampleEvent) => startTime(a) - startTime(b);
+
+  switch (sort) {
+    case "price":
+      return [...events].sort(
+        (a, b) => lowestPrice(a) - lowestPrice(b) || byDate(a, b),
+      );
+
+    case "popularity":
+      // Highest score first, hence b − a.
+      return [...events].sort(
+        (a, b) => popularityScore(b) - popularityScore(a) || byDate(a, b),
+      );
+
+    case "date":
+    default:
+      return [...events].sort(byDate);
+  }
 }
