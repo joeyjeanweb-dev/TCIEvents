@@ -49,7 +49,7 @@
 
 ---
 
-## Milestone 2 — Discover / Browse page
+## Milestone 2 — Discover / Browse page ✅ DONE
 
 - [x] 2.1 Build the **Discover page** layout (search bar + count + grid)  _(verified by Joey 2026-07-24)_ — sort dropdown comes in 2.4
   - [x] **Ad-hoc, outside the numbered sequence**: photo banner hero at the top of
@@ -74,7 +74,13 @@
       Milestone 3), plus **"loosen one filter" suggestion buttons** with real
       counts (`relaxationSuggestions()` in `lib/filter-events.ts`) and a separate
       honest "No events listed yet" state for when no filters are set at all
-- [ ] 2.6 Make filters a **drawer** on mobile
+- [x] 2.6 Make filters a **drawer** on mobile _(verified by Joey 2026-07-25)_ —
+      reusable `components/FilterDrawer.tsx` bottom sheet (backdrop, Escape,
+      focus trap, `inert` while closed, background scroll lock); the **Filters**
+      button moved up beside **Sort** with a live count badge, and the sheet's
+      footer shows **"Show N events"**. Filter changes inside the drawer are
+      batched — the URL is written once on close, so the sheet can't remount
+      itself shut mid-tick
 
 **✅ You'll see:** a working browse grid you can filter and sort.
 

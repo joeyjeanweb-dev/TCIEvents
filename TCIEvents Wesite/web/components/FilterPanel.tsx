@@ -1,11 +1,21 @@
 /**
- * FilterPanel — the filter sidebar on the Discover page (Steps 2.2–2.3).
+ * FilterPanel — the filter controls on the Discover page (Steps 2.2–2.3, 2.6).
  *
  * Layout (docs/03-Wireframes.md §3): a narrow column down the left on desktop,
- * sitting beside the results grid. On mobile it drops into the normal page flow
- * behind a "Filters" button for now — Step 2.6 turns that into a slide-up
- * drawer. This component doesn't care which: it just renders the controls and
- * calls `onChange` with a brand-new filters object whenever you touch one.
+ * sitting beside the results grid; on mobile the very same controls live inside
+ * the slide-up FilterDrawer (Step 2.6). This component doesn't care which — it
+ * just renders the controls and calls `onChange` with a brand-new filters object
+ * whenever you touch one. Two props cover the difference:
+ *
+ *   - **`variant`** — `"card"` draws the white bordered card (desktop sidebar);
+ *     `"plain"` drops the card *and* the "Filters / Clear all" heading, because
+ *     the drawer already has its own header and footer.
+ *   - **`idPrefix`** — both copies exist in the page at once (the drawer is
+ *     always present, just slid off-screen), and an HTML page may not contain
+ *     two elements with the same `id`. Worse, two radio buttons sharing a
+ *     `name` are treated by the browser as *one* group, so the drawer's "Island"
+ *     choice would fight the sidebar's. Giving each copy its own prefix keeps
+ *     them completely separate.
  *
  * Five sections, per the spec:
  *   1. **Category** — a checkbox per category, so you can tick more than one.
@@ -55,6 +65,8 @@ export function FilterPanel({
   onChange,
   onClear,
   showClear,
+  variant = "card",
+  idPrefix = "filter",
   className,
 }: {
   /** The filters currently applied to the grid. */
@@ -71,32 +83,40 @@ export function FilterPanel({
   onClear: () => void;
   /** Only show "Clear all" when there's something to clear. */
   showClear: boolean;
+  /** `"card"` = the desktop sidebar; `"plain"` = bare controls for the drawer. */
+  variant?: "card" | "plain";
+  /** Prefix for this copy's `id`/`name` attributes — see the note up top. */
+  idPrefix?: string;
   className?: string;
 }) {
+  const isCard = variant === "card";
+
   return (
     <aside
       aria-label="Filter events"
       className={cn(
-        "rounded-card border border-sand-200 bg-white p-5 shadow-soft",
+        isCard && "rounded-card border border-sand-200 bg-white p-5 shadow-soft",
         className,
       )}
     >
-      {/* ---- Panel heading ---- */}
-      <div className="flex items-center justify-between gap-3 border-b border-sand-200 pb-4">
-        <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ocean-900">
-          <SlidersHorizontal className="h-4 w-4 text-ocean-600" aria-hidden />
-          Filters
-        </h2>
-        {showClear && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="rounded-control px-2 py-1 text-sm font-semibold text-ocean-600 transition-colors hover:bg-sand-100 hover:text-ocean-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400"
-          >
-            Clear all
-          </button>
-        )}
-      </div>
+      {/* ---- Panel heading (sidebar only — the drawer has its own) ---- */}
+      {isCard && (
+        <div className="flex items-center justify-between gap-3 border-b border-sand-200 pb-4">
+          <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ocean-900">
+            <SlidersHorizontal className="h-4 w-4 text-ocean-600" aria-hidden />
+            Filters
+          </h2>
+          {showClear && (
+            <button
+              type="button"
+              onClick={onClear}
+              className="rounded-control px-2 py-1 text-sm font-semibold text-ocean-600 transition-colors hover:bg-sand-100 hover:text-ocean-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ---- 1. Category (multi-select) ---- */}
       <Section title="Category">
@@ -104,7 +124,7 @@ export function FilterPanel({
           {CATEGORIES.map((category) => (
             <li key={category.key}>
               <CheckRow
-                name="filter-category"
+                name={`${idPrefix}-category`}
                 type="checkbox"
                 checked={filters.categories.includes(category.key)}
                 onChange={() => onChange(toggleCategory(filters, category.key))}
@@ -126,7 +146,7 @@ export function FilterPanel({
           {DATE_FILTERS.map((preset) => (
             <li key={preset.value}>
               <CheckRow
-                name="filter-date"
+                name={`${idPrefix}-date`}
                 type="radio"
                 checked={filters.date === preset.value}
                 onChange={() => onChange({ ...filters, date: preset.value })}
@@ -142,7 +162,7 @@ export function FilterPanel({
         <ul className="space-y-1">
           <li>
             <CheckRow
-              name="filter-island"
+              name={`${idPrefix}-island`}
               type="radio"
               checked={filters.island === "all"}
               onChange={() => onChange({ ...filters, island: "all" })}
@@ -152,7 +172,7 @@ export function FilterPanel({
           {ISLANDS.map((island: Island) => (
             <li key={island}>
               <CheckRow
-                name="filter-island"
+                name={`${idPrefix}-island`}
                 type="radio"
                 checked={filters.island === island}
                 onChange={() => onChange({ ...filters, island })}
@@ -166,7 +186,7 @@ export function FilterPanel({
       {/* ---- 4 + 5. Price and Free only ---- */}
       <Section title="Price">
         <label
-          htmlFor="filter-price"
+          htmlFor={`${idPrefix}-price`}
           className={cn(
             "flex items-baseline justify-between text-sm text-ink-500",
             filters.freeOnly && "opacity-50",
@@ -178,7 +198,7 @@ export function FilterPanel({
           </span>
         </label>
         <input
-          id="filter-price"
+          id={`${idPrefix}-price`}
           type="range"
           min={0}
           max={priceMax}
@@ -214,7 +234,7 @@ export function FilterPanel({
         </div>
         <div className="mt-4">
           <CheckRow
-            name="filter-free"
+            name={`${idPrefix}-free`}
             type="checkbox"
             checked={filters.freeOnly}
             onChange={() =>

@@ -1,5 +1,5 @@
 /**
- * Discover / Browse page (`/discover`) — Milestone 2, Steps 2.1–2.4.
+ * Discover / Browse page (`/discover`) — Milestone 2, Steps 2.1–2.6.
  *
  * This is the page the homepage hero button, the "See all events" link, the
  * category chips and the SearchBar have all been pointing at since Milestone 1.
@@ -9,14 +9,12 @@
  *     the starting filters, and renders the page furniture (heading, container).
  *     It ships no JavaScript of its own.
  *   - **`DiscoverBrowser` is the client component.** It owns the interactive
- *     bits — the search bar, the FilterPanel sidebar, the live filtering and
- *     sorting, the result count and the grid.
+ *     bits — the search bar, the FilterPanel (sidebar on desktop, slide-up
+ *     drawer on mobile), the live filtering and sorting, the result count, the
+ *     grid and the empty state.
  *
  * Next.js 16 note: `searchParams` is a **Promise** here (it used to be a plain
  * object in older versions), so it has to be `await`ed — hence `async function`.
- *
- * Still to come in this milestone: the designed EmptyState (2.5) and the mobile
- * filter drawer (2.6).
  */
 
 import type { Metadata } from "next";
@@ -69,24 +67,25 @@ export default async function DiscoverPage({
       <section className="pb-14 md:pb-16">
         <div className="container-page">
           {/*
-            The negative top margin lifts the white search card up onto the
-            banner's lower edge, so it looks like it's floating over the photo.
-            `relative z-10` keeps it above the banner rather than behind it.
-
             The `key` ties this component to the current URL. If you arrive from
             a category chip, or click "Discover" in the nav to start over, the
             component remounts and picks up the new starting filters instead of
             hanging on to the previous ones.
+
+            Step 2.6 note: the "float the search card onto the banner" wrapper
+            (`relative z-10 -mt-14`) used to live here, around everything. A
+            `z-index` on a wrapper traps its contents in their own layer, which
+            would have pinned the new mobile filter drawer *underneath* the
+            sticky site header. It now sits inside DiscoverBrowser, around the
+            search bar alone — which is the only thing that ever needed it.
           */}
-          <div className="relative z-10 -mt-14 md:-mt-16">
-            <DiscoverBrowser
-              key={discoverHref(filters, sort)}
-              events={events}
-              initialFilters={filters}
-              initialSort={sort}
-              nowISO={nowISO}
-            />
-          </div>
+          <DiscoverBrowser
+            key={discoverHref(filters, sort)}
+            events={events}
+            initialFilters={filters}
+            initialSort={sort}
+            nowISO={nowISO}
+          />
         </div>
       </section>
     </main>

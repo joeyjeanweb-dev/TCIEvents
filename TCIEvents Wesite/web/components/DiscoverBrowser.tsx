@@ -8,8 +8,8 @@
  *
  * What it does today:
  *   - shows the compact SearchBar, pre-filled from the URL,
- *   - shows the FilterPanel sidebar (Steps 2.2–2.3) beside the results on
- *     desktop, and behind a "Filters" button on mobile,
+ *   - shows the FilterPanel (Steps 2.2–2.3) as a sidebar beside the results on
+ *     desktop, and inside a slide-up FilterDrawer on mobile (Step 2.6),
  *   - keeps the chosen filters in React state and filters the list live,
  *   - shows the result count, a pill per active filter, and "Clear filters",
  *   - shows the Sort dropdown (Step 2.4) and re-orders the grid,
@@ -30,13 +30,18 @@
  *   The sidebar writes to *both*, which is what keeps the bar's Date/Island
  *   dropdowns showing the same thing as the sidebar's radio buttons.
  *
- * Still to come in this milestone:
- *   - Step 2.6: turn the mobile filter section into a slide-up drawer.
- *
  * On the URL: every applied change also rewrites the address bar (via
  * `router.replace`) so the filtered view can be bookmarked or shared. We use
  * `replace` rather than `push` so the back button doesn't have to walk back
  * through every filter you tried.
+ *
+ * **One exception, added in Step 2.6:** while the mobile drawer is open, filter
+ * changes update the grid but *not* the address bar. Rewriting the URL re-runs
+ * the server page, which remounts this component (see the `key` in
+ * `app/discover/page.tsx`) — and a remounted component would slam the drawer
+ * shut on every tick. So the drawer batches: tick as many boxes as you like,
+ * watch the count on the "Show N events" button change, and the URL is brought
+ * up to date once, when the drawer closes.
  */
 
 "use client";
@@ -46,10 +51,12 @@ import { useRouter } from "next/navigation";
 import { CalendarOff, SearchX, SlidersHorizontal } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { EventCard } from "@/components/EventCard";
+import { FilterDrawer } from "@/components/FilterDrawer";
 import { FilterPanel } from "@/components/FilterPanel";
 import { SearchBar, type SearchValues } from "@/components/SearchBar";
 import { SortSelect } from "@/components/SortSelect";
 import {
+  activeFilterCount,
   countByCategory,
   countFree,
   DEFAULT_FILTERS,
@@ -63,7 +70,6 @@ import {
   type SortOption,
 } from "@/lib/filter-events";
 import { CATEGORY_MAP, type SampleEvent } from "@/lib/sample-events";
-import { cn } from "@/lib/utils";
 
 export function DiscoverBrowser({
   events,
@@ -88,7 +94,7 @@ export function DiscoverBrowser({
     date: initialFilters.date,
     island: initialFilters.island,
   });
-  /** Mobile only: is the filter section expanded? (Becomes a drawer in 2.6.) */
+  /** Mobile only: is the slide-up filter drawer showing? (Step 2.6.) */
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // useMemo = only re-run the filtering when the inputs actually change,
@@ -126,11 +132,24 @@ export function DiscoverBrowser({
     [events, filters, matched.length, nowISO],
   );
 
-  /** Apply new filters to the grid *and* mirror them into the address bar. */
-  function apply(next: DiscoverFilters) {
+  /**
+   * Apply new filters to the grid *and* mirror them into the address bar.
+   *
+   * `syncUrl: false` skips the address-bar half. That's what the mobile drawer
+   * uses, because rewriting the URL remounts this component and would close the
+   * drawer mid-tick (see the note at the top of the file); `closeFilters()`
+   * catches the URL up afterwards.
+   */
+  function apply(next: DiscoverFilters, syncUrl = true) {
     setFilters(next);
     setDraft({ q: next.q, date: next.date, island: next.island });
-    router.replace(discoverHref(next, sort), { scroll: false });
+    if (syncUrl) router.replace(discoverHref(next, sort), { scroll: false });
+  }
+
+  /** Close the mobile drawer and write whatever was chosen inside it to the URL. */
+  function closeFilters() {
+    setFiltersOpen(false);
+    router.replace(discoverHref(filters, sort), { scroll: false });
   }
 
   /** Same idea for the Sort dropdown: re-order the grid and update the URL. */
@@ -145,23 +164,34 @@ export function DiscoverBrowser({
   }
 
   const isFiltered = hasActiveFilters(filters);
+  /** The number on the mobile "Filters" button — 0 means no badge. */
+  const activeCount = activeFilterCount(filters);
 
   return (
     <>
-      {/* ---- Search bar ---- */}
-      <SearchBar
-        size="compact"
-        values={draft}
-        onValuesChange={setDraft}
-        onSubmit={handleSearch}
-        className="mx-auto max-w-4xl"
-      />
+      {/* ---- Search bar ----
+          The negative top margin lifts the white search card up onto the photo
+          banner's lower edge, so it looks like it's floating over the picture;
+          `relative z-10` keeps it above the banner rather than behind it. Only
+          this card needs that treatment — see the note in app/discover/page.tsx. */}
+      <div className="relative z-10 -mt-14 md:-mt-16">
+        <SearchBar
+          size="compact"
+          values={draft}
+          onValuesChange={setDraft}
+          onSubmit={handleSearch}
+          className="mx-auto max-w-4xl"
+        />
+      </div>
 
       {/*
-        ---- Results bar: count on the left, Sort on the right ----
-        Wireframe §3: "42 events        Sort: Date ▾". The active-filter pills
-        drop onto their own line underneath so that a handful of them can't push
-        the Sort dropdown off the end of the row.
+        ---- Results bar: count on the left, controls on the right ----
+        Wireframe §3 desktop: "42 events        Sort: Date ▾".
+        Wireframe §3 mobile:  "[ ⚙ Filters ]    Sort ▾" on their own row, which
+        is why the controls take the full width below `sm` (`w-full sm:w-auto`)
+        and the Sort dropdown is pushed to the far end with `ml-auto`.
+        The active-filter pills drop onto their own line underneath so that a
+        handful of them can't push the Sort dropdown off the end of the row.
       */}
       <div className="mt-8 border-b border-sand-200 pb-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -171,7 +201,39 @@ export function DiscoverBrowser({
             {isFiltered && <span> matching your search</span>}
           </p>
 
-          <SortSelect value={sort} onChange={applySort} />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            {/* Mobile/tablet only: opens the drawer. From `lg` up the filters
+                are a permanent sidebar, so the button would be pointless. */}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={filtersOpen}
+              className="flex h-10 items-center gap-2 rounded-control border border-sand-200 bg-white px-3.5 text-sm font-semibold text-ink-900 shadow-soft transition-colors hover:bg-sand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 lg:hidden"
+            >
+              <SlidersHorizontal className="h-4 w-4 text-ocean-600" aria-hidden />
+              Filters
+              {activeCount > 0 && (
+                // aria-hidden because the accessible name below already says
+                // "3 filters applied" — otherwise it'd be read out twice.
+                <span
+                  aria-hidden
+                  className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ocean-600 px-1.5 text-xs font-semibold text-white"
+                >
+                  {activeCount}
+                </span>
+              )}
+              <span className="sr-only">
+                {activeCount === 0
+                  ? "no filters applied"
+                  : `${activeCount} ${
+                      activeCount === 1 ? "filter" : "filters"
+                    } applied`}
+              </span>
+            </button>
+
+            <SortSelect value={sort} onChange={applySort} className="ml-auto" />
+          </div>
         </div>
 
         {isFiltered && (
@@ -205,25 +267,9 @@ export function DiscoverBrowser({
         column and a flexible results column (`grid-cols-[16rem_1fr]`).
       */}
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[16rem_1fr]">
-        {/* Mobile: a button that expands the panel. Hidden on desktop, where
-            the panel is always visible. Step 2.6 makes this a real drawer. */}
-        <button
-          type="button"
-          onClick={() => setFiltersOpen((open) => !open)}
-          aria-expanded={filtersOpen}
-          aria-controls="discover-filters"
-          className="flex items-center justify-center gap-2 rounded-control border border-sand-200 bg-white px-4 py-3 text-sm font-semibold text-ink-900 shadow-soft transition-colors hover:bg-sand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 lg:hidden"
-        >
-          <SlidersHorizontal className="h-4 w-4 text-ocean-600" aria-hidden />
-          {filtersOpen ? "Hide filters" : "Filters"}
-        </button>
-
-        {/* Hidden on mobile until you press "Filters", but always visible from
-            `lg` up regardless of that toggle — hence the `lg:block`. */}
-        <div
-          id="discover-filters"
-          className={cn(filtersOpen ? "block" : "hidden", "lg:block")}
-        >
+        {/* The sidebar exists from `lg` up only; below that the same panel is
+            rendered inside the drawer at the bottom of this file. */}
+        <div className="hidden lg:block">
           {/* `sticky top-24` keeps the panel in view while the grid scrolls
               past it on desktop (24 = clear of the sticky site header). */}
           <FilterPanel
@@ -314,6 +360,61 @@ export function DiscoverBrowser({
           )}
         </div>
       </div>
+
+      {/*
+        ---- Step 2.6: the mobile filter drawer ----
+        The same FilterPanel, in a sheet that slides up over the results. It's
+        rendered here at the very end of the page (rather than up beside the
+        results bar) purely for reading order: it sits on top of everything
+        visually, so it comes last in the markup.
+
+        `variant="plain"` drops the panel's card and its own heading, because
+        the drawer supplies both. `idPrefix="drawer"` keeps this copy's radio
+        buttons from being confused with the sidebar's — see FilterPanel.
+
+        `apply(next, false)` = update the grid, leave the URL alone until the
+        drawer closes (the note at the top of this file explains why).
+      */}
+      <FilterDrawer
+        open={filtersOpen}
+        onClose={closeFilters}
+        title="Filters"
+        footer={
+          <div className="flex items-center gap-3">
+            {/* Greyed out rather than hidden when there's nothing to clear, so
+                the "Show N events" button doesn't jump sideways as you tick. */}
+            <button
+              type="button"
+              onClick={() => apply(DEFAULT_FILTERS, false)}
+              disabled={!isFiltered}
+              className="rounded-control px-4 py-3 text-sm font-semibold text-ocean-600 transition-colors hover:bg-sand-100 hover:text-ocean-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 disabled:cursor-not-allowed disabled:text-ink-500 disabled:opacity-50 disabled:hover:bg-transparent"
+            >
+              Clear all
+            </button>
+            {/* The count is live: it updates as you tick, so you can see what
+                you're about to get before closing the sheet. */}
+            <button
+              type="button"
+              onClick={closeFilters}
+              className="flex-1 rounded-control bg-ocean-600 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-ocean-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
+            >
+              Show {results.length} {results.length === 1 ? "event" : "events"}
+            </button>
+          </div>
+        }
+      >
+        <FilterPanel
+          filters={filters}
+          counts={counts}
+          freeCount={freeCount}
+          priceMax={priceMax}
+          onChange={(next) => apply(next, false)}
+          onClear={() => apply(DEFAULT_FILTERS, false)}
+          showClear={isFiltered}
+          variant="plain"
+          idPrefix="drawer"
+        />
+      </FilterDrawer>
     </>
   );
 }

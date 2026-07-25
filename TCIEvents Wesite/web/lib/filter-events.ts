@@ -124,6 +124,28 @@ export function hasActiveFilters(filters: DiscoverFilters): boolean {
 }
 
 /**
+ * How many separate filters are switched on — the little number shown on the
+ * mobile "Filters" button (Step 2.6), e.g. "Filters ②".
+ *
+ * Two deliberate choices:
+ *   - **The search box isn't counted.** It lives in the search bar above the
+ *     results, not inside the drawer, so counting it would promise something
+ *     you can't find (or clear) once the drawer is open.
+ *   - **Each ticked category counts on its own**, because that's how many
+ *     things you'd have to untick to get back to everything.
+ */
+export function activeFilterCount(filters: DiscoverFilters): number {
+  return (
+    filters.categories.length +
+    (filters.date !== "any" ? 1 : 0) +
+    (filters.island !== "all" ? 1 : 0) +
+    // "Free events only" switches the slider off, so at most one of the two can
+    // be counted — otherwise the badge would read 2 for a single decision.
+    (filters.freeOnly || filters.maxPrice !== null ? 1 : 0)
+  );
+}
+
+/**
  * Tick / untick one category checkbox and hand back a fresh filters object.
  *
  * The result is kept in `CATEGORIES` order (Music, Nightlife, Boat…) rather than

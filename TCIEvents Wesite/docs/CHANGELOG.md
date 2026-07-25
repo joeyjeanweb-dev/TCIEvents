@@ -18,6 +18,55 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-25 — Milestone 2, Step 2.6: filters become a slide-up drawer on mobile
+
+> On phones the filter panel no longer pushes the results down the page. The
+> **Filters** button now sits beside **Sort** exactly as the wireframe draws it,
+> and opens a sheet that slides up over the grid — tick as many boxes as you
+> like, watch the live count on **"Show 12 events"**, then close it.
+
+- **Added** (`web/components/FilterDrawer.tsx`): a reusable **bottom-sheet**
+  component — dimmed backdrop, grab handle, header with a close ✕, scrolling
+  body and a sticky action row. It knows nothing about events or filters
+  (everything inside comes from `children`), so Milestone 3 can reuse it.
+  Behaviour it handles for you: slide in *and* out, **Escape** closes, tapping
+  the backdrop closes, the page behind can't scroll while it's open, keyboard
+  focus moves into the sheet and returns to the Filters button afterwards, and
+  Tab cycles inside the sheet instead of wandering off behind it.
+- **Added** (`web/lib/filter-events.ts`): `activeFilterCount()` — the small
+  ocean-blue number on the Filters button ("Filters ②"). It counts what's
+  actually *inside* the drawer, so the search box (which lives in the bar above,
+  not in the drawer) is deliberately not counted.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): the **Filters** button
+  moved out of the results area and into the results bar next to **Sort**,
+  matching `docs/03-Wireframes.md` §3 ("`[ ⚙ Filters ]  Sort ▾`"). Below `sm`
+  the two share their own full-width row under the event count.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): while the drawer is open,
+  filter changes update the grid but **not** the address bar; the URL is brought
+  up to date once, when the drawer closes. Rewriting the URL re-runs the server
+  page and remounts the browser component, which would otherwise slam the drawer
+  shut on every tick.
+- **Changed** (`web/components/FilterPanel.tsx`): gained two props so the same
+  panel can serve both places — `variant="plain"` (drops the white card and its
+  own heading, since the drawer supplies both) and `idPrefix` (the sidebar and
+  the drawer copy are both in the page at once, and two radio groups sharing a
+  `name` would fight each other).
+- **Changed** (`web/app/discover/page.tsx`): the "float the search card onto the
+  photo banner" wrapper (`relative z-10 -mt-14`) moved from around the whole
+  browser to around the search bar alone. A `z-index` on a wrapper traps
+  everything inside it in one layer, which would have pinned the drawer
+  underneath the sticky site header.
+- **Removed** (`web/components/DiscoverBrowser.tsx`): the old mobile
+  "Filters / Hide filters" expander that pushed the results down the page.
+- **Accessibility:** the sheet is a real `role="dialog"` with `aria-modal`, is
+  switched off with `inert` while closed (so you can't Tab into an invisible
+  panel), and the badge's count is also spoken as "3 filters applied". The
+  `prefers-reduced-motion` rule already in `globals.css` removes the slide for
+  anyone who's asked for less animation.
+- **Verified by Joey:** [x] 2026-07-25 — **completes Milestone 2.**
+
+---
+
 ### 2026-07-25 — Milestone 2, Step 2.5: designed EmptyState with "loosen one filter" suggestions
 
 > The bare "no events match your search" placeholder from Step 2.1 becomes the
