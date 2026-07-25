@@ -433,6 +433,106 @@ export function countFree(
 }
 
 // ---------------------------------------------------------------------------
+// "Nothing matched" suggestions (Step 2.5)
+// ---------------------------------------------------------------------------
+
+/**
+ * One suggested way out of an empty results grid: "Any date — 5 events".
+ *
+ * `filters` is the *whole* filter object with that single choice reset, ready to
+ * hand straight to the page's `apply()`, so the EmptyState buttons don't need to
+ * know anything about how filters are shaped.
+ */
+export type FilterRelaxation = {
+  /** Stable key for React lists ("date", "island", …). */
+  key: string;
+  /** Button text — matches the wording used in the FilterPanel. */
+  label: string;
+  /** How many events this would actually bring back. Always 1 or more. */
+  count: number;
+  /** The filters to apply if the visitor takes this suggestion. */
+  filters: DiscoverFilters;
+};
+
+/**
+ * Work out which *single* filter, if loosened, would bring some events back.
+ *
+ * This is what makes the empty state useful rather than just apologetic. Instead
+ * of only offering "Clear filters" — which throws away everything the visitor
+ * carefully picked — we try relaxing each active filter on its own and keep the
+ * ones that would actually show something.
+ *
+ * **Honest-data note (CLAUDE.md §5):** every count here is measured by really
+ * re-running `filterEvents`, not estimated. A suggestion is only offered if it
+ * genuinely leads somewhere, so pressing one can never land you back on another
+ * empty grid.
+ *
+ * Best-first: the suggestion that brings back the most events is listed first.
+ * `Array.sort` is stable in modern JavaScript, so equal counts stay in the order
+ * they're declared below (which follows the FilterPanel top-to-bottom).
+ */
+export function relaxationSuggestions(
+  events: SampleEvent[],
+  filters: DiscoverFilters,
+  nowISO: string,
+): FilterRelaxation[] {
+  /** Each active filter, paired with the version of itself that's switched off. */
+  const candidates: { key: string; label: string; patch: Partial<DiscoverFilters> }[] = [];
+
+  if (filters.q.trim()) {
+    candidates.push({
+      key: "q",
+      label: `Drop “${filters.q.trim()}”`,
+      patch: { q: "" },
+    });
+  }
+  if (filters.categories.length > 0) {
+    candidates.push({
+      key: "categories",
+      label: "All categories",
+      patch: { categories: [] },
+    });
+  }
+  if (filters.date !== "any") {
+    candidates.push({ key: "date", label: "Any date", patch: { date: "any" } });
+  }
+  if (filters.island !== "all") {
+    candidates.push({
+      key: "island",
+      label: "All islands",
+      patch: { island: "all" },
+    });
+  }
+  if (filters.maxPrice !== null) {
+    candidates.push({
+      key: "price",
+      label: "Any price",
+      patch: { maxPrice: null },
+    });
+  }
+  if (filters.freeOnly) {
+    candidates.push({
+      key: "free",
+      label: "Include paid events",
+      patch: { freeOnly: false },
+    });
+  }
+
+  return candidates
+    .map(({ key, label, patch }) => {
+      const relaxed = { ...filters, ...patch };
+      return {
+        key,
+        label,
+        filters: relaxed,
+        count: filterEvents(events, relaxed, nowISO).length,
+      };
+    })
+    .filter((suggestion) => suggestion.count > 0)
+    .sort((a, b) => b.count - a.count);
+}
+
+// ---------------------------------------------------------------------------
 // Sorting (Step 2.4)
 // ---------------------------------------------------------------------------
 

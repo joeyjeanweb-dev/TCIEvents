@@ -18,6 +18,52 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-25 — Milestone 2, Step 2.5: designed EmptyState with "loosen one filter" suggestions
+
+> The bare "no events match your search" placeholder from Step 2.1 becomes the
+> real **EmptyState** component from the spec — and instead of only offering
+> "clear everything", it now tells you which *single* filter to loosen and how
+> many events that would bring back.
+
+- **Added** (`web/components/EmptyState.tsx`): the **EmptyState** component
+  listed in `docs/02-Spec.md` Part B ("friendly 'no events match' message").
+  Built as a general-purpose panel — icon + heading + description + whatever
+  buttons the caller passes as children — because Milestone 3+ needs the same
+  panel elsewhere (an organizer with no events yet, a quiet category month).
+  Only the wording will change; the look stays consistent. It has no state and
+  no `"use client"`, so it also works inside server components.
+- **Added** (`web/lib/filter-events.ts`): `relaxationSuggestions()` — the brains
+  behind the new empty state. It tries switching **one** active filter off at a
+  time, really re-runs the filter for each, and keeps only the ones that would
+  actually show something. Best-first, so the suggestion that brings back the
+  most events is listed first. Because a suggestion is only offered when it
+  genuinely leads somewhere, pressing one can never drop you onto another empty
+  grid.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): the empty grid now renders
+  the EmptyState in one of three shapes, depending on *why* it's empty:
+  1. **filters on, something can be loosened** — e.g. searching "jazz" on Grand
+     Turk offers `Drop "jazz" (2)` and `All islands (1)` as one-tap buttons,
+     plus **Clear all filters**;
+  2. **filters on, nothing helps** — no buttons but "Clear all filters", with
+     copy that says so plainly rather than implying a fix exists;
+  3. **no filters at all** — "No events listed yet". Impossible with today's
+     sample data, but it's the state a real database hits on a quiet week, so it
+     says something honest instead of blaming filters that aren't set.
+- **Changed** (`web/components/DiscoverBrowser.tsx`): the heading now quotes what
+  you typed — *No events match "jazz"* — instead of the generic line, so it's
+  obvious the search box is what's narrowing things.
+- **Honest-data note** (CLAUDE.md §5): every number on those suggestion buttons
+  is measured by re-running the real filter over the real sample data — none of
+  them are estimates, and the suggestions list is empty rather than padded when
+  nothing would help.
+- **Accessibility:** each suggestion button carries an `aria-label` spelling out
+  the bare count ("All islands — 1 event"), since a floating "1" beside a label
+  means nothing read aloud. The heading is an `<h2>`, one level under the
+  Discover hero's `<h1>`.
+- **Verified by Joey:** [x] 2026-07-25
+
+---
+
 ### 2026-07-25 — Milestone 2, Step 2.4: Sort dropdown (date / price / popularity)
 
 > The results bar gains the **Sort ▾** control from the wireframe. The grid can

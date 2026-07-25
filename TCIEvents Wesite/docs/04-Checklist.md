@@ -67,8 +67,13 @@
       — dropdown at the right of the results bar; sort lives in the URL
       (`?sort=price`). "Most popular" is derived honestly from `featured` +
       ticket status, **not** from invented sales numbers
-- [ ] 2.5 Add **EmptyState** ("no events match your filters") — _plain placeholder
-      message shipped in 2.1; 2.5 makes it the designed component_
+- [x] 2.5 Add **EmptyState** ("no events match your filters")
+      _(verified by Joey 2026-07-25)_ — _plain placeholder message shipped in 2.1;
+      2.5 made it the designed component:_ reusable `components/EmptyState.tsx`
+      (icon + heading + copy + caller-supplied buttons, ready to reuse in
+      Milestone 3), plus **"loosen one filter" suggestion buttons** with real
+      counts (`relaxationSuggestions()` in `lib/filter-events.ts`) and a separate
+      honest "No events listed yet" state for when no filters are set at all
 - [ ] 2.6 Make filters a **drawer** on mobile
 
 **✅ You'll see:** a working browse grid you can filter and sort.

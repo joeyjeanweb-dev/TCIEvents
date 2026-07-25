@@ -14,7 +14,8 @@
  *   - shows the result count, a pill per active filter, and "Clear filters",
  *   - shows the Sort dropdown (Step 2.4) and re-orders the grid,
  *   - renders the responsive EventCard grid,
- *   - shows a friendly message when nothing matches.
+ *   - shows the designed EmptyState (Step 2.5) when nothing matches, including
+ *     one-tap suggestions for loosening a single filter.
  *
  * Sort is deliberately kept *out* of the `filters` object: it doesn't hide any
  * events, so it shouldn't light up "Clear filters" or get wiped when you press
@@ -30,7 +31,6 @@
  *   dropdowns showing the same thing as the sidebar's radio buttons.
  *
  * Still to come in this milestone:
- *   - Step 2.5: a proper designed EmptyState component,
  *   - Step 2.6: turn the mobile filter section into a slide-up drawer.
  *
  * On the URL: every applied change also rewrites the address bar (via
@@ -43,7 +43,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SearchX, SlidersHorizontal } from "lucide-react";
+import { CalendarOff, SearchX, SlidersHorizontal } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { EventCard } from "@/components/EventCard";
 import { FilterPanel } from "@/components/FilterPanel";
 import { SearchBar, type SearchValues } from "@/components/SearchBar";
@@ -56,6 +57,7 @@ import {
   filterEvents,
   hasActiveFilters,
   priceCeiling,
+  relaxationSuggestions,
   sortEvents,
   type DiscoverFilters,
   type SortOption,
@@ -114,6 +116,15 @@ export function DiscoverBrowser({
 
   // Depends only on the event list, so it's worked out once and never again.
   const priceMax = useMemo(() => priceCeiling(events), [events]);
+
+  // Step 2.5: which single filter, loosened, would bring events back. Only
+  // worth working out when the grid is actually empty — the rest of the time
+  // this stays an empty array and costs nothing.
+  const suggestions = useMemo(
+    () =>
+      matched.length === 0 ? relaxationSuggestions(events, filters, nowISO) : [],
+    [events, filters, matched.length, nowISO],
+  );
 
   /** Apply new filters to the grid *and* mirror them into the address bar. */
   function apply(next: DiscoverFilters) {
@@ -236,25 +247,70 @@ export function DiscoverBrowser({
               ))}
             </div>
           ) : (
-            /* Placeholder wording for now — Step 2.5 turns this into the proper
-               designed EmptyState component from the spec. */
-            <div className="flex flex-col items-center rounded-card border border-sand-200 bg-sand-100 px-6 py-16 text-center">
-              <SearchX className="h-8 w-8 text-ocean-600" aria-hidden />
-              <h2 className="mt-4 font-display text-2xl font-semibold text-ocean-900">
-                No events match your search
-              </h2>
-              <p className="mt-2 max-w-md text-ink-500">
-                Try a different date, another island, or clear your filters to
-                see everything happening across Turks &amp; Caicos.
-              </p>
-              <button
-                type="button"
-                onClick={() => apply(DEFAULT_FILTERS)}
-                className="mt-6 rounded-control bg-ocean-600 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-ocean-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
-              >
-                Clear filters
-              </button>
-            </div>
+            /*
+              ---- Step 2.5: the designed EmptyState ----
+              Three shapes, depending on why the grid is empty:
+                1. filters are on and something can be loosened → suggestions,
+                2. filters are on but nothing helps → "Clear all filters" only,
+                3. no filters at all → there are simply no events listed.
+              (3) can't happen with today's sample data, but it's the state a real
+              database would hit on a quiet week, so it says something honest
+              instead of blaming filters that aren't there.
+            */
+            <EmptyState
+              icon={isFiltered ? SearchX : CalendarOff}
+              title={
+                !isFiltered
+                  ? "No events listed yet"
+                  : filters.q.trim()
+                    ? `No events match “${filters.q.trim()}”`
+                    : "No events match your filters"
+              }
+              description={
+                !isFiltered
+                  ? "Check back soon — new events are added across Turks & Caicos every week."
+                  : suggestions.length > 0
+                    ? "You're close. Loosening one thing brings events back:"
+                    : "Nothing on the island matches all of those at once. Clearing your filters shows everything that's coming up."
+              }
+            >
+              {/* One button per genuinely useful relaxation, best first. The
+                  number beside each label is a real count, not a guess — see
+                  relaxationSuggestions() in lib/filter-events.ts. */}
+              {suggestions.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.key}
+                      type="button"
+                      onClick={() => apply(suggestion.filters)}
+                      aria-label={`${suggestion.label} — ${suggestion.count} ${
+                        suggestion.count === 1 ? "event" : "events"
+                      }`}
+                      className="flex items-center gap-2 rounded-control border border-sand-200 bg-white px-3.5 py-2 text-sm font-semibold text-ocean-700 shadow-soft transition-colors hover:border-ocean-400 hover:text-ocean-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400"
+                    >
+                      {suggestion.label}
+                      <span
+                        aria-hidden
+                        className="rounded-full bg-sand-100 px-2 py-0.5 text-xs font-semibold text-ink-500"
+                      >
+                        {suggestion.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={() => apply(DEFAULT_FILTERS)}
+                  className="rounded-control bg-ocean-600 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-ocean-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400 focus-visible:ring-offset-2"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </EmptyState>
           )}
         </div>
       </div>
