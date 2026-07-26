@@ -18,6 +18,57 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-26 — Milestone 3, Step 3.5: "More from this organizer" row
+
+> Every event page now ends with a row of three more events to look at, so the
+> page has somewhere to go other than the back button. Where the organizer really
+> does run other events it says **"More from Ocean Club Events"**; where they
+> don't, the row widens to the same category, then the same island, and the
+> heading changes to match — it never puts someone else's events under an
+> organizer's name.
+
+- **Added** (`web/lib/sample-events.ts`): `getRelatedEvents(event, limit = 3)`.
+  Casts four nets in order — **same organizer → same category → same island →
+  anything else coming up** — and returns the first one that catches something,
+  along with a `kind` saying which net it was. Nets are never mixed, because then
+  no single heading would be true of the whole row. Always soonest-first, always
+  excludes the event you're already on, capped at 3.
+  - **Why a fallback exists at all:** our 15 sample events are spread across 14
+    organizers, so only **Ocean Club Events** runs more than one. Read literally,
+    "More from this organizer" would be an **empty row on 13 of the 15 pages**.
+    The two dishonest fixes — relabelling other people's events, or inventing
+    padding events — are both ruled out by the data-honesty policy in
+    `CLAUDE.md`, so the row tells the truth about what it's showing instead.
+- **Added** (`web/components/RelatedEvents.tsx`): the row itself — heading, one
+  line of context, a "see all" link, and three `EventCard`s. Reuses the same
+  card as the homepage and Discover grid, so a related event looks and behaves
+  identically wherever you meet it. Server component, ships no JavaScript.
+  - Headings by kind: `More from <Organizer>` · `More <Category> events` ·
+    `More events on <Island>` · `More events in Turks & Caicos`.
+  - Every **"see all"** link goes to a Discover URL the Milestone 2 filters
+    already understand — `?q=` (which searches organizer names), `?category=`,
+    `?island=` — so it lands on a real pre-filtered list, not a dead end.
+  - Sits on a sand-tinted band with a top border, 1 card across on phones,
+    2 from `sm`, 3 from `lg`.
+- **Changed** (`web/app/events/[slug]/page.tsx`): renders `<RelatedEvents>` at
+  the foot of the page.
+  - **Deviation from `docs/03-Wireframes.md` §4**, flagged for Joey: the wireframe
+    draws this row *inside* the left content column. It's placed **full width
+    below both columns** instead, because `.container-page` caps the page at
+    1200px — inside the left column the cards would only get ~720px, i.e. three
+    ~220px cards. Full width gives them ~360px each. It also gives Step 3.6's
+    sticky ticket card a natural place to stop. Easy to move back if preferred.
+- **Checks:** `npm run build` passes, TypeScript clean, all 15 event pages still
+  pre-rendered, no new lint problems (the one existing `SiteHeader.tsx` warning
+  is untouched). All four heading kinds confirmed in the rendered HTML —
+  `full-moon-beach-party` → "More from Ocean Club Events" (organizer),
+  `island-reggae-nights` → "More Music events" (category),
+  `sunset-catamaran-cruise` → "More events on Providenciales" (island, since it's
+  our only Boat event). Verified no page ever lists itself in its own row.
+- **Verified by Joey:** [x] 2026-07-26
+
+---
+
 ### 2026-07-26 — Milestone 3, Step 3.4 (revised): map is now a static image, not an iframe
 
 > **Why:** Joey found that the map's **zoom-out (−) button did nothing**. It turned

@@ -133,7 +133,31 @@
       - No new sample data — every event has carried `lat`/`lng` and three
         `gallery` images since Milestone 1; this is the first time anything
         displays them
-- [ ] 3.5 Add **"More from this organizer"** row
+- [x] 3.5 Add **"More from this organizer"** row
+      _(verified by Joey 2026-07-26)_ — `components/RelatedEvents.tsx` at the foot
+      of every event page: heading, one line of context, a "see all" link and up
+      to three `EventCard`s (the same card the homepage and Discover grid use).
+      - **The row widens rather than sitting empty.** Our 15 sample events are
+        spread across 14 organizers, so only **Ocean Club Events** runs more than
+        one — read literally, this row would be **blank on 13 of the 15 pages**.
+        `getRelatedEvents()` in `lib/sample-events.ts` therefore casts four nets
+        in order — **same organizer → same category → same island → anything
+        upcoming** — and the first that catches something wins. Nets are never
+        mixed, because then no single heading would be true of the whole row
+      - **The heading always tells the truth** about what's under it:
+        `More from Ocean Club Events` / `More Music events` /
+        `More events on Providenciales` / `More events in Turks & Caicos`. We
+        never relabel someone else's events as an organizer's, and no padding
+        events were invented — both would break the data-honesty policy
+      - Soonest-first, capped at 3, and a page never lists itself. Every
+        **"see all"** link points at a Discover URL the Milestone 2 filters
+        already understand (`?q=` searches organizer names, `?category=`,
+        `?island=`), so it lands on a real pre-filtered list, not a dead end
+      - **Placed full width below both columns**, not inside the left column as
+        `03-Wireframes.md` §4 sketches it: `.container-page` caps the page at
+        1200px, so in the left column the cards would get ~720px between them
+        (three ~220px cards) instead of ~360px each. It also gives 3.6's sticky
+        ticket card a natural place to stop
 - [ ] 3.6 Make ticket card **sticky** on desktop; **bottom buy-bar** on mobile
 - [ ] 3.7 **[Get Tickets]** → goes to the checkout flow (Milestone 4)
 - [ ] 3.8 Add **Open Graph tags** so shared links look great

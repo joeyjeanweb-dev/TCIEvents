@@ -178,6 +178,17 @@
 └────────────────────────────────────┴─────────────────────────┘
 ```
 
+> **As built (Step 3.5, verified by Joey 2026-07-26):** "More from this organizer"
+> ended up **full width below both columns**, not inside the left column as drawn
+> above. `.container-page` caps the page at 1200px, so in the left column the three
+> cards would share ~720px (~220px each) instead of getting ~360px each. It also
+> gives the sticky ticket card a natural place to stop.
+>
+> The heading is **not always** "More from this organizer": only one of our 14
+> sample organizers runs more than one event, so the row widens to the same
+> category, then the same island, and **renames itself** to match what it's
+> actually showing. See `04-Checklist.md` 3.5.
+
 **Mobile** (single column + sticky bottom buy bar)
 ```
 ┌───────────────────────────┐

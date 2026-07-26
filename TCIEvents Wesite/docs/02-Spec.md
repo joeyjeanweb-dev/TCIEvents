@@ -130,6 +130,13 @@ Sections top to bottom:
       `lib/static-map.ts` assembles the map from OpenStreetMap tiles directly —
       no key, no third-party JavaScript, no controls to break. Pan/zoom lives
       behind the **Larger map** and **Get directions** buttons.
+    - *Built as (Step 3.5):* "More from this organizer" sits **full width below
+      both columns**, not in the left column — at our 1200px page cap the left
+      column can't give three cards more than ~220px each. It also **renames
+      itself** (same category → same island → what's coming up) when the
+      organizer has no other events, which is true of 13 of our 15 sample pages;
+      relabelling other organizers' events under one name would break the
+      data-honesty policy.
   - **Right (sticky):** **Tickets card** — list of **TicketOption**s (GA, VIP,
     Early Bird) with −/+ steppers, a live subtotal + "Fee (5%)" + total, and a
     **[Get Tickets]** button.

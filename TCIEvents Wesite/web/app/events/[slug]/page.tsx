@@ -14,9 +14,10 @@
  * Step 3.4 added the two blocks under "When & where": `components/VenueMap.tsx`
  * (the map of the venue) and `components/PhotoGallery.tsx` (the photo strip and
  * its full-screen viewer).
- * Still to come in this milestone: "More from this organizer" (3.5), the
- * sticky/mobile ticket behaviour (3.6), the checkout link (3.7) and full Open
- * Graph tags (3.8).
+ * Step 3.5 added `components/RelatedEvents.tsx` — the "More from this
+ * organizer" row, full width below both columns.
+ * Still to come in this milestone: the sticky/mobile ticket behaviour (3.6),
+ * the checkout link (3.7) and full Open Graph tags (3.8).
  *
  * Next.js notes (this version differs from older Next.js):
  *  - `params` is a **Promise** and must be awaited — in the page and in
@@ -52,6 +53,7 @@ import {
   type SampleEvent,
 } from "@/lib/sample-events";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { RelatedEvents } from "@/components/RelatedEvents";
 import { TicketsCard } from "@/components/TicketsCard";
 import { VenueMap } from "@/components/VenueMap";
 import { cn } from "@/lib/utils";
@@ -317,6 +319,13 @@ export default async function EventDetailsPage({
           </Link>
         </aside>
       </div>
+
+      {/* ================= More from this organizer (Step 3.5) ================= */}
+      {/* Deliberately OUTSIDE the two-column grid so the cards get the full
+          1200px page width. Inside the left column they'd be squeezed into
+          ~720px, i.e. three ~220px cards. It also gives Step 3.6's sticky
+          ticket card a clean place to stop. */}
+      <RelatedEvents event={event} />
     </main>
   );
 }

@@ -619,3 +619,52 @@ export function getEventsByOrganizer(
     (e) => e.organizer === organizer && e.slug !== excludeSlug,
   );
 }
+
+/**
+ * Why a row of events at the foot of an event page is being shown.
+ *
+ * Most of our sample organizers run exactly ONE event, so "More from this
+ * organizer" would be an empty row on most pages. Rather than show nothing (or,
+ * worse, put other people's events under someone else's name), we fall back
+ * through progressively wider nets and report which one we landed on, so the
+ * row can label itself truthfully.
+ */
+export type RelatedKind = "organizer" | "category" | "island" | "upcoming";
+
+export type RelatedEventsResult = {
+  kind: RelatedKind;
+  events: SampleEvent[];
+};
+
+/**
+ * Events to suggest next, given the event someone is looking at.
+ *
+ * Tries, in order: same organizer → same category → same island → anything
+ * else coming up. The FIRST net that catches anything wins — we never mix them,
+ * because then no single heading would be true of the whole row.
+ * Always soonest-first, and never includes the event you're already on.
+ */
+export function getRelatedEvents(
+  event: SampleEvent,
+  limit = 3,
+): RelatedEventsResult {
+  // Sorted soonest-first once, up front; every net below preserves that order.
+  const others = getUpcomingEvents().filter((e) => e.slug !== event.slug);
+
+  const nets: { kind: RelatedKind; matches: (e: SampleEvent) => boolean }[] = [
+    { kind: "organizer", matches: (e) => e.organizer === event.organizer },
+    { kind: "category", matches: (e) => e.category === event.category },
+    { kind: "island", matches: (e) => e.island === event.island },
+    { kind: "upcoming", matches: () => true },
+  ];
+
+  for (const net of nets) {
+    const caught = others.filter(net.matches);
+    if (caught.length > 0) {
+      return { kind: net.kind, events: caught.slice(0, limit) };
+    }
+  }
+
+  // Only reachable if this is the only event in the whole dataset.
+  return { kind: "upcoming", events: [] };
+}
