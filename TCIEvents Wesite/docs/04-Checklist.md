@@ -101,7 +101,14 @@
       rows highlight, **Get Tickets** disabled until ≥1 ticket and popping an
       honest "Checkout coming soon" note until 3.7 wires it to Milestone 4.
       Subtotal / 5% fee / total deliberately left for 3.3
-- [ ] 3.3 Live **subtotal + 5% fee + total** calculation (visual only, no charge)
+- [x] 3.3 Live **subtotal + 5% fee + total** calculation (visual only, no charge)
+      _(verified by Joey 2026-07-26)_ — the maths lives in `lib/pricing.ts`
+      (`calculateOrder`), its own file so Milestone 4's checkout shows the identical
+      numbers and the two can't drift. Adds up in whole cents to avoid
+      floating-point errors; the Tickets card footer shows **Selected**,
+      **Subtotal**, **Fee (5%)** and a large **Total**, recomputed on every −/+
+      press inside one `aria-live` region. Free orders read **Total: Free**, not
+      "$0". Still display-only — no payment code anywhere
 - [ ] 3.4 Add **map** (static/embedded) and **photo gallery**
 - [ ] 3.5 Add **"More from this organizer"** row
 - [ ] 3.6 Make ticket card **sticky** on desktop; **bottom buy-bar** on mobile

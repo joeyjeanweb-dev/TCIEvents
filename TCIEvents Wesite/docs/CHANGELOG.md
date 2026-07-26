@@ -18,6 +18,54 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-26 — Milestone 3, Step 3.3: live subtotal + 5% fee + total
+
+> The Tickets card now does the maths. Press **+** and the footer instantly shows
+> **Subtotal**, **Fee (5%)** and a big **Total** — e.g. one $45 General Admission
+> reads $45 / $2.25 / **$47.25**, exactly the numbers sketched in
+> `docs/03-Wireframes.md` §4. The "coming in the next build step" placeholder is
+> gone. These are display figures only: there is still no payment code, no form
+> and no network call anywhere on the site.
+
+- **Added** (`web/lib/pricing.ts`): a small module holding the order arithmetic —
+  `SERVICE_FEE_RATE` (0.05), `SERVICE_FEE_LABEL` ("Fee (5%)") and
+  `calculateOrder(lines)`, which returns `{ ticketCount, subtotalUSD, feeUSD,
+  totalUSD }`.
+  - It's its own file because **Milestone 4's checkout has to show the identical
+    three numbers**; one shared function can't drift out of sync the way two
+    copies of the same formula would.
+  - **Adds up in whole cents**, not dollars, then divides by 100 at the end —
+    the standard way to dodge binary floating-point errors like
+    `0.1 + 0.2 = 0.30000000000000004`. The 5% fee is rounded to a whole cent.
+  - Rows with quantity 0 (or a stray negative/fractional one) are ignored, so
+    callers can pass every ticket type an event sells without filtering first.
+- **Changed** (`web/components/TicketsCard.tsx`): the footer placeholder is
+  replaced by the live summary — **Selected — N tickets**, **Subtotal**,
+  **Fee (5%)**, a rule, then **Total** in the large Fraunces display face.
+  - The numbers are derived during render from the stepper quantities, so they
+    can never fall out of step with the rows above them.
+  - **Free orders** (free-entry events, or picking only $0 ticket types) show
+    **Total: Free** plus "Free tickets — nothing to pay" rather than "$0".
+  - **Accessibility**: the three figures sit inside a single `aria-live` region,
+    so a screen reader announces the whole updated summary once per press
+    instead of interrupting three times.
+  - **Alignment**: `tabular-nums` on every figure keeps the digits in a straight
+    column instead of jittering as the amounts change.
+- **Data-honesty**: unchanged from 3.2 — **Get Tickets** still pops the
+  "Checkout coming soon … no payment is ever taken" note, and the
+  "Secure checkout · demo only, no card charged" footnote still sits under it.
+  The 5% fee shown is TCIEvents' real published rate (`docs/02-Spec.md` §C.4),
+  not an invented number.
+- **Note — still to come in this milestone**: map + gallery (3.4), "More from
+  this organizer" (3.5), sticky card / mobile buy-bar (3.6), the real checkout
+  link (3.7), Open Graph tags (3.8).
+- **Pre-existing lint error, untouched**: `npm run lint` still reports the one
+  error in `components/SiteHeader.tsx:42` described under Step 3.2.
+  `npm run build` passes (all 15 event pages pre-rendered).
+- **Verified by Joey:** [x] 2026-07-26
+
+---
+
 ### 2026-07-26 — Milestone 3, Step 3.2: the Tickets card + −/+ ticket steppers
 
 > The placeholder in the event page's right-hand column is now a real **Tickets**

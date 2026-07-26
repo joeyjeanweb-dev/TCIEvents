@@ -6,11 +6,12 @@
  * ticket type with a −/+ stepper, then a divider, then the Get Tickets button.
  *
  * What this step does and doesn't do:
- *   - 3.2 (this step) — the card, the list of `TicketOption` rows, and the
- *     quantity state behind the steppers.
- *   - 3.3 (next) — the live **subtotal + 5% fee + total** rows that go in the
- *     footer. Until then the footer honestly says the money maths is coming and
- *     shows only the count of tickets chosen. No invented prices.
+ *   - 3.2 — the card, the list of `TicketOption` rows, and the quantity state
+ *     behind the steppers.
+ *   - 3.3 (this step) — the live **Subtotal / Fee (5%) / Total** rows in the
+ *     footer, recalculated on every − or + press. The arithmetic itself lives in
+ *     `lib/pricing.ts` so Milestone 4's checkout shows the identical numbers.
+ *     These are display figures only — no payment code exists anywhere here.
  *   - 3.6 — makes this card **sticky** on desktop and gives mobile a bottom
  *     buy-bar. For now it just sits in the page's right-hand column.
  *   - 3.7 — points [Get Tickets] at the visual-only checkout of Milestone 4.
@@ -32,9 +33,11 @@
 import { useState } from "react";
 import { Lock, Ticket } from "lucide-react";
 import {
+  formatUSD,
   priceLabel,
   type SampleEvent,
 } from "@/lib/sample-events";
+import { calculateOrder, SERVICE_FEE_LABEL } from "@/lib/pricing";
 import { TicketOption } from "@/components/TicketOption";
 import { cn } from "@/lib/utils";
 
@@ -63,11 +66,23 @@ export function TicketsCard({
 
   const eventSoldOut = event.status === "sold_out";
 
-  /** Total tickets chosen across every row. */
-  const totalTickets = Object.values(quantities).reduce(
-    (sum, n) => sum + n,
-    0,
-  );
+  /**
+   * The live order maths (Step 3.3). Every ticket type is handed to
+   * `calculateOrder` along with however many are currently chosen — untouched
+   * rows are quantity 0 and simply don't count. Because this runs during the
+   * render, the numbers below are recomputed automatically on every − or +
+   * press; there is no separate "update the total" code to forget to call.
+   */
+  const { ticketCount: totalTickets, subtotalUSD, feeUSD, totalUSD } =
+    calculateOrder(
+      event.ticketTypes.map((ticket, index) => ({
+        priceUSD: ticket.priceUSD,
+        quantity: quantities[index] ?? 0,
+      })),
+    );
+
+  /** A $0 order (free events, or only free ticket types chosen). */
+  const isFreeOrder = totalTickets > 0 && totalUSD === 0;
 
   function setQuantity(index: number, next: number) {
     // Clamp defensively so the state can never hold a silly number even if a
@@ -135,19 +150,40 @@ export function TicketsCard({
           </div>
         ) : (
           <>
-            {/* The line that becomes Subtotal / Fee (5%) / Total in Step 3.3. */}
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-sm text-ink-500">Selected</span>
-              <span
-                aria-live="polite"
-                aria-atomic="true"
-                className="text-sm font-semibold text-ink-900"
-              >
-                {totalTickets === 0
-                  ? "No tickets yet"
-                  : `${totalTickets} ticket${totalTickets === 1 ? "" : "s"}`}
-              </span>
+            {/* ---------- Order summary (Step 3.3) ----------
+                One `aria-live` region around all three numbers: a screen reader
+                hears the whole updated summary once after a stepper press,
+                instead of three separate interruptions. */}
+            <div aria-live="polite" aria-atomic="true">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm text-ink-500">Selected</span>
+                <span className="text-sm font-semibold tabular-nums text-ink-900">
+                  {totalTickets === 0
+                    ? "No tickets yet"
+                    : `${totalTickets} ticket${totalTickets === 1 ? "" : "s"}`}
+                </span>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                <SummaryRow label="Subtotal" value={formatUSD(subtotalUSD)} />
+                <SummaryRow label={SERVICE_FEE_LABEL} value={formatUSD(feeUSD)} />
+              </div>
+
+              <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-sand-200 pt-3">
+                <span className="text-base font-semibold text-ink-900">
+                  Total
+                </span>
+                <span className="font-display text-2xl font-semibold tabular-nums text-ink-900">
+                  {isFreeOrder ? "Free" : formatUSD(totalUSD)}
+                </span>
+              </div>
             </div>
+
+            {isFreeOrder && (
+              <p className="mt-2 text-right text-xs text-ink-500">
+                Free tickets — nothing to pay.
+              </p>
+            )}
 
             {totalTickets > 0 && (
               <button
@@ -156,16 +192,11 @@ export function TicketsCard({
                   setQuantities({});
                   setShowComingSoon(false);
                 }}
-                className="mt-2 cursor-pointer rounded-sm text-xs font-medium text-ocean-600 underline-offset-2 transition-colors hover:text-ocean-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400"
+                className="mt-3 cursor-pointer rounded-sm text-xs font-medium text-ocean-600 underline-offset-2 transition-colors hover:text-ocean-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ocean-400"
               >
                 Clear selection
               </button>
             )}
-
-            <p className="mt-4 rounded-control bg-sand-100/70 px-3 py-2 text-xs leading-relaxed text-ink-500">
-              Subtotal, the 5% service fee and the total appear here in the next
-              build step.
-            </p>
 
             <button
               type="button"
@@ -207,6 +238,23 @@ export function TicketsCard({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * One "label ………… $value" line in the order summary.
+ *
+ * `tabular-nums` makes every digit the same width, so $2.25 and $12.50 line up
+ * in a neat column instead of shifting as you press +.
+ */
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="text-sm text-ink-500">{label}</span>
+      <span className="text-sm font-medium tabular-nums text-ink-900">
+        {value}
+      </span>
     </div>
   );
 }
