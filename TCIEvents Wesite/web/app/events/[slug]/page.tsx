@@ -6,10 +6,11 @@
  * the URL — e.g. `/events/full-moon-beach-party` — is looked up in
  * `lib/sample-events.ts`.
  *
- * Step 3.1 builds the **layout skeleton**: breadcrumb, cover image, title,
- * meta (date / venue / organizer), the About text and the "When & where" block,
- * plus the empty right-hand column where the Tickets card will live.
- * Still to come in this milestone: the ticket steppers + totals (3.2–3.3), the
+ * Step 3.1 built the **layout skeleton**: breadcrumb, cover image, title,
+ * meta (date / venue / organizer), the About text and the "When & where" block.
+ * Step 3.2 filled the right-hand column with `components/TicketsCard.tsx` — the
+ * ticket list with −/+ steppers.
+ * Still to come in this milestone: the live subtotal + 5% fee + total (3.3), the
  * map & gallery (3.4), "More from this organizer" (3.5), the sticky/mobile
  * behaviour (3.6) and full Open Graph tags (3.8).
  *
@@ -43,10 +44,10 @@ import {
   formatEventTime,
   formatEventTimeRange,
   getEventBySlug,
-  priceLabel,
   STATUS_LABEL,
   type SampleEvent,
 } from "@/lib/sample-events";
+import { TicketsCard } from "@/components/TicketsCard";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -286,28 +287,9 @@ export default async function EventDetailsPage({
           </div>
         </div>
 
-        {/* ---- Right column (the Tickets card lands here in Step 3.2) ---- */}
+        {/* ---- Right column: the Tickets card (Step 3.2) ---- */}
         <aside className="lg:pt-1">
-          <div className="rounded-card border border-sand-200 bg-white p-6 shadow-soft">
-            <p className="text-sm font-semibold uppercase tracking-wide text-ink-500">
-              Tickets
-            </p>
-            <p className="mt-2 font-display text-3xl font-semibold text-ink-900">
-              {priceLabel(event)}
-            </p>
-            <p className="mt-1 text-sm text-ink-500">
-              {event.ticketTypes.length === 1
-                ? "1 ticket type"
-                : `${event.ticketTypes.length} ticket types`}
-            </p>
-
-            <div className="mt-5 border-t border-sand-200 pt-5">
-              <p className="text-sm text-ink-500">
-                Ticket selection, the live total and the checkout button arrive in
-                the next step of this build.
-              </p>
-            </div>
-          </div>
+          <TicketsCard event={event} />
 
           <Link
             href="/discover"

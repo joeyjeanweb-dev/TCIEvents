@@ -94,7 +94,13 @@
       organizer, About paragraphs, "When & where" panel, and the empty right-hand
       column reserved for the Tickets card. All 15 pages pre-rendered via
       `generateStaticParams`; unknown slugs 404
-- [ ] 3.2 Build the **Tickets card** with **TicketOption** −/+ steppers
+- [x] 3.2 Build the **Tickets card** with **TicketOption** −/+ steppers
+      _(verified by Joey 2026-07-26)_ — `components/TicketsCard.tsx` (client, owns the
+      quantities) + `components/TicketOption.tsx` (one controlled row: name,
+      price, round −/+ stepper, sold-out variant). Max 8 per ticket type, chosen
+      rows highlight, **Get Tickets** disabled until ≥1 ticket and popping an
+      honest "Checkout coming soon" note until 3.7 wires it to Milestone 4.
+      Subtotal / 5% fee / total deliberately left for 3.3
 - [ ] 3.3 Live **subtotal + 5% fee + total** calculation (visual only, no charge)
 - [ ] 3.4 Add **map** (static/embedded) and **photo gallery**
 - [ ] 3.5 Add **"More from this organizer"** row

@@ -18,6 +18,55 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-26 — Milestone 3, Step 3.2: the Tickets card + −/+ ticket steppers
+
+> The placeholder in the event page's right-hand column is now a real **Tickets**
+> card. Every ticket type an event sells gets its own row — name, price, and a
+> round **− 0 +** stepper — and the rows you've picked from light up in ocean
+> blue. The **[Get Tickets]** button stays switched off until you've chosen at
+> least one ticket. The money maths (subtotal, 5% fee, total) is the *next* step,
+> so the footer says so plainly rather than showing a made-up number.
+
+- **Added** (`web/components/TicketOption.tsx`): one ticket row, listed as its
+  own component in `docs/02-Spec.md` §C.3. Shows the ticket name, "**$45** each"
+  (or a green **Free** for $0 tickets), and the −/+ stepper.
+  - It's a **controlled** component — it holds no quantity of its own, it's
+    handed `quantity` and calls `onChange` with the new number. The card above it
+    owns the truth, which is what lets Step 3.3 add up a subtotal across rows.
+  - **Sold-out rows** (e.g. *Fine Dining on the Beach*) render greyed with a red
+    "Sold out" label and no stepper at all — nothing to press that does nothing.
+  - **Accessibility**: the stepper is a labelled `role="group"`, each button has
+    a full spoken label ("Add one General Admission ticket") instead of "+", the
+    number is `aria-live` so changes are read out, and − is disabled at 0 / + at
+    the maximum instead of failing silently.
+- **Added** (`web/components/TicketsCard.tsx`): the card itself — the first
+  interactive piece of the details page (`"use client"`; the page around it stays
+  a server component). Header with the honest "from $X" price, the list of
+  `TicketOption` rows, a **Clear selection** link once something's picked, a
+  live "**Selected** — 3 tickets" line, the **Get Tickets** button and a
+  "Secure checkout · demo only, no card charged" footnote.
+  - **Cap of 8 per ticket type** (`MAX_PER_TICKET_TYPE`), the way real ticketing
+    sites limit bulk-buying; the note appears under multi-type events.
+  - **Sold-out events** show no button at all — just "This event is sold out."
+  - **Data-honesty**: pressing **Get Tickets** pops a plain "**Checkout coming
+    soon** — this is a preview site … no payment is ever taken" note inside the
+    card, which is exactly the Phase 1 behaviour `docs/02-Spec.md` §C.3 allows.
+    There is no form, no network call and no payment code anywhere in this step.
+- **Changed** (`web/app/events/[slug]/page.tsx`): the right-hand column now
+  renders `<TicketsCard event={event} />` in place of the Step 3.1 placeholder.
+- **Note — still to come in this milestone** (each its own checklist item): the
+  live subtotal + 5% fee + total (3.3), map + gallery (3.4), "More from this
+  organizer" (3.5), desktop **sticky** card / mobile bottom buy-bar (3.6), the
+  real checkout link (3.7) and Open Graph tags (3.8).
+- **Pre-existing lint error, untouched**: `npm run lint` reports one error in
+  `components/SiteHeader.tsx:42` (React's new "don't call setState inside an
+  effect" rule, about closing the mobile drawer on route change). It predates
+  this step and `npm run build` passes; worth cleaning up in the Milestone 6
+  polish pass.
+- **Verified by Joey:** [x] 2026-07-26
+
+---
+
 ### 2026-07-25 — Milestone 3, Step 3.1: the Event Details page exists (cover, title, meta, breadcrumb)
 
 > Every event card on the site has been linking to `/events/[slug]` since
