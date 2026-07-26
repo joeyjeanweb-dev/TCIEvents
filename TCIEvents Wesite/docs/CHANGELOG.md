@@ -18,6 +18,133 @@
 
 _Work in progress that hasn't been grouped into a finished milestone yet appears here._
 
+### 2026-07-26 — Milestone 3, Step 3.4 (revised): map is now a static image, not an iframe
+
+> **Why:** Joey found that the map's **zoom-out (−) button did nothing**. It turned
+> out to be reproducible on **OpenStreetMap's own embed page**, away from this site
+> entirely — so it's a bug in their embed, not ours, and nothing outside an
+> `<iframe>` can fix a button inside one (browsers isolate iframe content
+> completely). A control that visibly does nothing is worse on a boutique-feeling
+> page than no control at all, so the map is now a **static picture we assemble
+> ourselves** from OpenStreetMap tiles. `docs/02-Spec.md` §C.3 already allowed
+> this ("static map image is fine for Phase 1").
+
+- **Added** (`web/lib/static-map.ts`): `planStaticMap({ lat, lng })` — the
+  arithmetic that turns a coordinate into a list of positioned map-tile images.
+  - **How web maps actually work**, in one file: every online map is a grid of
+    256×256 pictures. At zoom 0 the world is one tile; each zoom level splits
+    every tile into four, so zoom 15 is 32,768 tiles across. The file converts
+    the venue's latitude/longitude into a position on that grid (the standard
+    **Web Mercator** projection — longitude is linear, latitude uses a logarithm,
+    which is why Greenland looks enormous on world maps), then works out which
+    tiles cover a 768×432 window centred on the venue.
+  - Returns everything as **percentages**, so the finished map scales to any card
+    width with no JavaScript measuring anything.
+  - The venue lands at **dead centre** by construction, so the component needs no
+    positioning maths of its own.
+  - Defensive about the edges of the world even though Turks & Caicos is nowhere
+    near them: latitudes clamp at ±85.05° (Mercator sends the poles to infinity),
+    tile columns wrap across the antimeridian, and rows past the poles are
+    skipped rather than requested and 404'd.
+- **Changed** (`web/components/VenueMap.tsx`): the `<iframe>` is gone. The card
+  now renders 12 tile `<img>`s, a centred ocean-blue pin, and the required
+  **© OpenStreetMap** credit. The footer row (venue, address, **Larger map**,
+  **Get directions**) is unchanged.
+  - **Lighter:** ~12 small PNGs (~22 KB each, lazy-loaded below the fold) instead
+    of ~1.3 MB of third-party map library. No third-party JavaScript on the page.
+  - **Nothing to break:** there are no map controls at all now, so there's no
+    control that can look dead. Pan and zoom are still one tap away — **Larger
+    map** opens the real interactive OpenStreetMap at the venue, **Get
+    directions** opens Google Maps.
+  - Deliberately plain `<img>` rather than `next/image`: tiles are already tiny,
+    correctly-sized PNGs on a CDN, so the image optimiser would add server work
+    for no gain (and would need the tile host allow-listed in `next.config.ts`).
+    There's a scoped `eslint-disable` with that reasoning next to it.
+- **⚠️ Before launch:** OpenStreetMap's tiles are free and donation-funded, and
+  their Tile Usage Policy asks for visible attribution (done) and **no heavy or
+  bulk use**. A sample site is fine; a real, trafficked TCIEvents should point
+  `TILE_URL` at a paid tile host (MapTiler, Thunderforest, Mapbox) or a
+  self-hosted server. That's a one-line change in `lib/static-map.ts`.
+- **Checks:** `npm run build` passes, TypeScript clean, all 15 event pages still
+  pre-rendered, `npm run lint` reports no new problems. The tile maths was
+  verified against the real rendered HTML: 12 tiles, gap-free coverage of the
+  visible window, and the centre tile independently recomputed and matched
+  (`15/9814/14350` for Grace Bay). Sample tile URLs confirmed to return
+  HTTP 200 PNGs, and a second island (Grand Turk) correctly resolves to
+  different tiles.
+- **Verified by Joey:** [x] 2026-07-26
+
+---
+
+### 2026-07-26 — Milestone 3, Step 3.4: venue map + photo gallery
+
+> The left-hand column of every event page now answers "where exactly is this?"
+> and "what does it look like?". Under the **When & where** facts there's a real,
+> working map with a pin on the venue, the address, a **Larger map** link and a
+> **Get directions** button; under that a **Photos** strip of thumbnails that
+> open full-screen with ← / → and Escape. No new data was invented — every event
+> in `lib/sample-events.ts` already carried `lat` / `lng` and three `gallery`
+> images from Milestone 1; this step is the first time anything displays them.
+
+- **Added** (`web/components/VenueMap.tsx`): the map card — a keyless
+  **OpenStreetMap** embed with a marker on the venue, then a white footer row
+  with the venue name, full address, a **Larger map** link and a **Get
+  directions** button.
+  - > **Superseded the same day** — the `<iframe>` described below was replaced by
+    > a static tile image because its zoom-out button was broken. See the
+    > "Step 3.4 (revised)" entry above. The footer row survived unchanged.
+  - **Why OpenStreetMap and not Google:** `docs/02-Spec.md` §C.3 asks for a
+    Google Maps embed, but Google's Embed API now needs a **billed API key**
+    (create it, fund it, restrict it to the domain, store it as a secret).
+    OpenStreetMap's embed needs no key and no account, so the map is real and
+    working today instead of a grey placeholder box. Switching later is a
+    one-line `src` change — the card around it doesn't move.
+  - **Get directions** opens Google Maps in a new tab using the event's
+    coordinates (more reliable than a street address on small islands). It's a
+    plain link — no key, no tracking code.
+  - **The address is real text outside the frame**, so if the map is slow,
+    blocked or offline the location and the directions link still work.
+  - **Performance:** `loading="lazy"` — the map (below the fold) is only fetched
+    once you scroll near it, and the card reserves its shape up front so the page
+    doesn't jump when it arrives.
+  - Server component: no `"use client"`, so it ships zero JavaScript.
+- **Added** (`web/components/PhotoGallery.tsx`): the **Photos** section — a
+  2-across (phone) / 3-across (`sm`+) thumbnail grid, each tile a real `<button>`
+  that opens a full-screen viewer.
+  - **Viewer:** ← / → buttons *and* arrow keys step through the photos (wrapping
+    at either end), a "2 / 3" counter, Escape / X / backdrop-click to close, and
+    `object-contain` so the whole photo is shown letterboxed rather than cropped.
+  - **Accessibility**, the same checklist `FilterDrawer` follows: `role="dialog"`
+    + `aria-modal`, focus moves to the close button on open and returns to the
+    exact thumbnail you clicked on close, Tab cycles inside the viewer (focus
+    trap), and the page behind can't scroll while it's open.
+  - **Honest alt text:** these are sample photos nobody has captioned, so the
+    label is what it truthfully is — "Enlarge photo 2 of 3" on the button — not
+    an invented description of the picture.
+- **Changed** (`web/app/globals.css`): added a small `fade-in` keyframe +
+  `.animate-fade-in` helper for overlays like the photo viewer. The existing
+  `prefers-reduced-motion` block already cuts it to nothing for anyone who has
+  asked for less animation.
+- **Changed** (`web/app/events/[slug]/page.tsx`): renders `<VenueMap>` directly
+  under the "When & where" panel (same question, so it shares the heading) and
+  `<PhotoGallery>` below it, then updated the file's header notes.
+- **Order note:** `docs/03-Wireframes.md` §4 sketches Map → Gallery under About;
+  that's the order here, with the map tucked under the existing "When & where"
+  block rather than repeating a second location heading.
+- **Checks:** `npm run build` passes, TypeScript clean, all 15 event pages still
+  pre-rendered; the served page was confirmed to contain the map embed, the
+  directions link and all three gallery thumbnails.
+- **Pre-existing lint error, untouched:** `npm run lint` still reports the single
+  error in `components/SiteHeader.tsx:42` first noted in Step 3.2. Nothing new
+  from these two files.
+- **Note — still to come in this milestone:** "More from this organizer" (3.5),
+  sticky ticket card / mobile buy-bar (3.6), the real checkout link (3.7), Open
+  Graph tags (3.8). Optional later polish: touch-swipe in the photo viewer.
+- **Verified by Joey:** [x] 2026-07-26 (gallery as built; the map from this entry
+  was replaced before verification — see the revised entry above)
+
+---
+
 ### 2026-07-26 — Milestone 3, Step 3.3: live subtotal + 5% fee + total
 
 > The Tickets card now does the maths. Press **+** and the footer instantly shows

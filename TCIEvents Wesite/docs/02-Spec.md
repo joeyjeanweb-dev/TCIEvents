@@ -124,6 +124,12 @@ Sections top to bottom:
 - **Two-column (desktop):**
   - **Left:** About (rich text), a **Google Maps embed** (static map image is
     fine for Phase 1), photo **gallery** thumbnails, "More from this organizer".
+    - *Built as (Step 3.4):* a **static map**, taking the "static is fine"
+      option. Google's Embed API now needs a billed API key, and OpenStreetMap's
+      keyless `<iframe>` embed has a **broken zoom-out button**, so
+      `lib/static-map.ts` assembles the map from OpenStreetMap tiles directly —
+      no key, no third-party JavaScript, no controls to break. Pan/zoom lives
+      behind the **Larger map** and **Get directions** buttons.
   - **Right (sticky):** **Tickets card** — list of **TicketOption**s (GA, VIP,
     Early Bird) with −/+ steppers, a live subtotal + "Fee (5%)" + total, and a
     **[Get Tickets]** button.

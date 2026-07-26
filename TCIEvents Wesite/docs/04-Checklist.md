@@ -109,7 +109,30 @@
       **Subtotal**, **Fee (5%)** and a large **Total**, recomputed on every −/+
       press inside one `aria-live` region. Free orders read **Total: Free**, not
       "$0". Still display-only — no payment code anywhere
-- [ ] 3.4 Add **map** (static/embedded) and **photo gallery**
+- [x] 3.4 Add **map** (static/embedded) and **photo gallery**
+      _(verified by Joey 2026-07-26)_ — `components/VenueMap.tsx` under the
+      "When & where" panel, then `components/PhotoGallery.tsx` below it.
+      - **Map: static, not embedded.** The first build used an OpenStreetMap
+        `<iframe>`; its **zoom-out button was broken** (reproducible on
+        OpenStreetMap's own site, so their bug — and a button inside an iframe
+        can't be fixed from outside it). Replaced with a static map we assemble
+        ourselves: `lib/static-map.ts` turns the event's `lat`/`lng` into 12
+        positioned OpenStreetMap tile images via the Web Mercator projection,
+        pin dead centre, sized in percentages so it scales to any width. No
+        third-party JavaScript, no controls, nothing that can look dead — and
+        ~12 lazy-loaded PNGs instead of ~1.3 MB of map library. **Larger map**
+        and **Get directions** still open the real interactive OpenStreetMap /
+        Google Maps. Requires the visible **© OpenStreetMap** credit; before
+        real traffic, point `TILE_URL` at a paid tile host
+      - **Gallery:** 2-across (phone) / 3-across (`sm`+) thumbnails, each a real
+        `<button>` opening a full-screen viewer with ← / → buttons *and* arrow
+        keys, a "2 / 3" counter, Escape / X / backdrop to close, `object-contain`
+        so nothing is cropped. Same modal discipline as the Step 2.6 drawer:
+        `role="dialog"` + `aria-modal`, focus in on open and back to the exact
+        thumbnail on close, focus trap, background scroll locked
+      - No new sample data — every event has carried `lat`/`lng` and three
+        `gallery` images since Milestone 1; this is the first time anything
+        displays them
 - [ ] 3.5 Add **"More from this organizer"** row
 - [ ] 3.6 Make ticket card **sticky** on desktop; **bottom buy-bar** on mobile
 - [ ] 3.7 **[Get Tickets]** → goes to the checkout flow (Milestone 4)

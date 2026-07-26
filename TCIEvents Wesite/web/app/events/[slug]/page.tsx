@@ -9,10 +9,14 @@
  * Step 3.1 built the **layout skeleton**: breadcrumb, cover image, title,
  * meta (date / venue / organizer), the About text and the "When & where" block.
  * Step 3.2 filled the right-hand column with `components/TicketsCard.tsx` — the
- * ticket list with −/+ steppers.
- * Still to come in this milestone: the live subtotal + 5% fee + total (3.3), the
- * map & gallery (3.4), "More from this organizer" (3.5), the sticky/mobile
- * behaviour (3.6) and full Open Graph tags (3.8).
+ * ticket list with −/+ steppers — and 3.3 gave that card its live subtotal /
+ * 5% fee / total (`lib/pricing.ts`).
+ * Step 3.4 added the two blocks under "When & where": `components/VenueMap.tsx`
+ * (the map of the venue) and `components/PhotoGallery.tsx` (the photo strip and
+ * its full-screen viewer).
+ * Still to come in this milestone: "More from this organizer" (3.5), the
+ * sticky/mobile ticket behaviour (3.6), the checkout link (3.7) and full Open
+ * Graph tags (3.8).
  *
  * Next.js notes (this version differs from older Next.js):
  *  - `params` is a **Promise** and must be awaited — in the page and in
@@ -47,7 +51,9 @@ import {
   STATUS_LABEL,
   type SampleEvent,
 } from "@/lib/sample-events";
+import { PhotoGallery } from "@/components/PhotoGallery";
 import { TicketsCard } from "@/components/TicketsCard";
+import { VenueMap } from "@/components/VenueMap";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -285,6 +291,18 @@ export default async function EventDetailsPage({
               )}
             </FactRow>
           </div>
+
+          {/* The map sits directly under the facts panel — same "where is this?"
+              question, so it doesn't get its own heading (Step 3.4). */}
+          <VenueMap
+            venueName={event.venueName}
+            address={event.address}
+            lat={event.lat}
+            lng={event.lng}
+          />
+
+          {/* Photo strip + full-screen viewer (Step 3.4). */}
+          <PhotoGallery images={event.gallery} eventTitle={event.title} />
         </div>
 
         {/* ---- Right column: the Tickets card (Step 3.2) ---- */}
